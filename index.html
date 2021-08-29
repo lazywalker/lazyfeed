@@ -12,6 +12,930 @@
 <body>
 <section class="daily-content">
 <h2 class="daily-heading">
+<time datetime="2021-08-29T01:13:59.903432198Z">08-29</time>
+</h2>
+<ul class="sources card">
+<li class="source">
+<section>
+<h3 class="source-name">Rust.cc</h3>
+<section class="articles-per-source">
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust日报】2021-08-28 开源操作系统夏令营最终报告会安排</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=ef3dd4e8-a8e8-4fec-bc7e-75703e1117ff">
+<div class="article-summary-box-inner">
+<span><h3>开源操作系统夏令营最终报告会安排</h3>
+<p>会议主题：开源操作系统夏令营最终报告会
+会议时间：2021/08/29 09:00-11:30 (GMT+08:00) 中国标准时间 - 北京
+点击链接入会，或添加至会议列表： https://meeting.tencent.com/dm/Mp7T1h5zeQOk?rs=25
+会议 ID：635 194 989</p>
+<p>下面是9位全程参与夏令营活动同学的报告顺序。每人报告时间最长15分钟。</p>
+<ol>
+<li>杨云枫 王涛 Rustsbi的哪吒开发版移植</li>
+<li>兰陈昕 zCore图形支持</li>
+<li>都秉甲 容器技术学习</li>
+<li>薛潇巍 RVM 的 RISC-V 支持</li>
+<li>陈乐 共享调度器</li>
+<li>吴非凡 基于用户态中断的异步系统调用设计与实现</li>
+<li>彭淳毅 陈志扬 基于rCore-Tutorial的性能分析软件实现</li>
+</ol>
+<h3>crates.live：可视化 Rust crates 依赖项</h3>
+<p>crates.live 是来自 crates.io 的 Rust crates 的依赖可视化工具。 它显示了 Rust crates（包）的依赖树。功能包括：</p>
+<ul>
+<li>依赖解析， crates.live 引擎通过匹配依赖版本来完成完整的依赖解析。</li>
+<li>交互式图表，带有标记的板条箱的可缩放交互式图表。</li>
+<li>图像导出， 将图形导出为 PNG。</li>
+<li>开放 API：（即将推出）GraphQL API。</li>
+</ul>
+<p>crates.live 使用了一堆技术框架，技术栈包括：</p>
+<ul>
+<li>Rust， crates.live 后端和爬虫是用 Rust 和开源 Rust 库开发的。</li>
+<li>GraphQl， WASM 驱动的 GraphQL 服务器。</li>
+<li>React/Bulma， 前端库。</li>
+<li>Terraform， 帮助启动和维护我们的基础设施。</li>
+<li>Cloudflare， Cloudflare 工作人员运行 WASM 后端。</li>
+</ul>
+<p>如果在使用此应用程序时有任何疑问、建议或问题； 可以通过 contact@crates.live 联系。 crates.live 由 Abid Omar 开发，可通过 contact@omarabid.com 联系。</p>
+<p><a href="https://crates.live/" rel="noopener noreferrer">链接</a>：https://crates.live/</p>
+<h3>Obake，版本化数据结构</h3>
+<p>Obake 是一个用于声明和维护版本化数据结构的过程宏。 “obake”这个名字取自日语“お化け（おばけ）”，这是日本民间传说中一类会变形的超自然生物。</p>
+<p>在开发应用程序时，配置格式和内部数据结构通常会在版本之间演变。 然而，保持这些版本之间的向后兼容性需要声明和维护遗留格式的数据结构和用于在它们之间迁移的代码。 Obake 的目标是让这个过程变得轻松。</p>
+<pre><code>#[obake::versioned]                 // create a versioned data-structure
+#[obake(version("0.1.0"))]          // declare some versions
+#[obake(version("0.2.0"))]
+#[derive(PartialEq, Eq, Hash)]      // additional attributes are applied to all versions
+struct Foo {
+    #[obake(cfg("0.1.0"))]          // enable fields for specific versions with
+    foo: String,                    // semantic version constraints
+   
+    #[obake(cfg("&gt;=0.2, &lt;=0.3.0"))] // any semantic version constraint can appear in
+    bar: u32,                       // a `cfg` attribute 
+   
+    #[obake(cfg("0.1.0"))]          // multiple `cfg` attributes are treated as a
+    #[obake(cfg("&gt;=0.3"))]          // disjunction over version constraints
+    baz: char,
+}
+
+// describe migrations between versions using the `From` trait
+// and an automatically generated type-level macro for referring to
+// specific versions of `Foo`
+impl From&lt;Foo!["0.1.0"]&gt; for Foo!["0.2.0"] {
+    fn from(foo: Foo!["0.1.0"]) -&gt; Self {
+        Self { bar: 0 }
+    }
+}
+
+// an enumeration of all versions of `Foo` is accessed using the
+// `obake::Versioned` trait:
+let versioned_example: &lt;Foo as obake::Versioned&gt;::Versioned = unimplemented!();
+
+// this enumeration implements `Into&lt;Foo&gt;`, where `Foo` is the latest declared
+// version of `Foo` (in this case, `Foo!["0.2.0"]`)
+let example: Foo = versioned_example.into();
+</code></pre>
+<p>Github<a href="https://github.com/doctorn/obake" rel="noopener noreferrer">链接</a>：https://github.com/doctorn/obake</p>
+<h3>iced，跨平台 GUI 库</h3>
+<p>iced，Rust 的跨平台 GUI 库，专注于简单性和类型安全。 灵感来自<a href="https://elm-lang.org/" rel="noopener noreferrer">Elm</a>。</p>
+<p><img src="https://raw.githubusercontent.com/hecrj/iced/master/docs/graphs/ecosystem.png" alt="eco"></p>
+<p>Github<a href="https://github.com/hecrj/iced/" rel="noopener noreferrer">链接</a>：https://github.com/hecrj/iced/</p>
+<p>示例：https://github.com/hecrj/iced/tree/master/examples</p>
+<hr>
+<p>From 日报小组 <a href="https://rustcc.cn/blog_with_author?author_id=207704d2-4f5e-4219-a631-6ab4ab4d8929" rel="noopener noreferrer">洋芋</a></p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
+<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust 日报】2021-8-27 Rudra Rust 的内存安全和未定义行为检测工具</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=ce7eb559-fdda-45d7-a53e-293af787a813">
+<div class="article-summary-box-inner">
+<span><h4>Rudra Rust 的内存安全和未定义行为检测工具</h4>
+<p>Rudra 是一个静态分析器，用于检测 Rust 程序中常见的未定义行为。它能够分析单个 Rust 包以及 crates.io 上的所有包。Rudra 及其相关论文将在 Proceedings of the 28th ACM Symposium on Operating Systems Principles 2021 (SOSP '21) 上发表。</p>
+<ul>
+<li>https://github.com/sslab-gatech/Rudra#readme</li>
+</ul>
+<h4>nom 7.0 版本发布</h4>
+<p>nom 是一个用 Rust 编写的解析器组合库。它的目标是提供工具来构建安全的解析器，而不会影响速度或内存消耗。为此，它广泛使用 Rust 的强类型和内存安全来生成快速且正确的解析器，并提供函数、宏和特征来抽象大部分容易出错的管道。目前7.0已经发布</p>
+<ul>
+<li>https://crates.io/crates/nom</li>
+</ul>
+<h4>egui 0.14 版本发布</h4>
+<p>egui 是一个易于使用的纯 Rust 图形用户界面。egui 可以在 Web 上、本机上以及您最喜欢的游戏引擎中运行。egui 旨在成为最容易使用的 Rust GUI 库，以及在 Rust 中制作 Web 应用程序的最简单方法，它可以在任何可以绘制纹理三角形的地方使用，这意味着您可以轻松地将其集成到您选择的游戏引擎中。</p>
+<ul>
+<li>演示文档：https://emilk.github.io/egui/</li>
+<li>https://github.com/emilk/egui</li>
+</ul>
+<hr>
+<p>From 日报小组 北纬27度，侯盛鑫</p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
+<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">开源项目xiu登上了GitHub rust trending榜</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=86c83d9a-8370-42cf-8993-ef15af6932c4">
+<div class="article-summary-box-inner">
+<span><p><a href="https://github.com/harlanc/xiu" rel="noopener noreferrer">https://github.com/harlanc/xiu</a></p>
+<p><a href="https://github.com/trending/rust?since=daily" rel="noopener noreferrer">https://github.com/trending/rust?since=daily</a></p>
+<p>感谢大家的支持！！</p>
+<p>PS：</p>
+<p>前三名有两个都在论坛里发过，这个论坛有点狠，哈哈</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Salvo - 一个简单的 Web 后端框架</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=e5dc5be9-b1ab-488f-8944-dd7cd97b0128">
+<div class="article-summary-box-inner">
+<span><h2>为什么要写这个框架</h2>
+<p>因为我笨，无法学会使用 actix-web 等现存的框架。当我想把以前的 go 的 web 服务使用 rust 实现时，一眼看去，似乎每个框架都比 go 里存在框架复杂, 本来 Rust 的学习曲线就够陡峭的了, 又何苦把 Web 框架整得那么复杂?</p>
+<h2>如何做到足够简单</h2>
+<p>很多底层的实现 Hyper 都已经实现，所以，一般需求，基于 Hyper 实现应该没有错。Salvo 也是一样。 核心功能是提供还用简单的API，以及一个功能强大并且灵活的路由系统。</p>
+<p>Salvo 里统一了 Handler 和 Middleware. Middleware 就是 Handler. 通过路由的 before 或者 after 添加到 Router 上。本质上, Middleware 和 Handler 都是处理 Request 请求，并且可能向 Response 写入数据。而 Handler 接收的参数是 Request, Depot, Response 三个, 其中 Depot 用于存储请求处理过程中的临时数据. 为方便书写, 在用不着的情况下可以省略掉某些参数.</p>
+<pre><code>use Salvo::prelude::*;
+
+#[fn_handler]
+async fn hello_world(_req: &amp;mut Request, _depot: &amp;mut Depot, res: &amp;mut Response) {
+    res.render_plain_text("Hello World");
+}
+#[fn_handler]
+async fn hello_world2(res: &amp;mut Response) {
+    res.render_plain_text("Hello World");
+}
+</code></pre>
+<p>另外路由系统提供的 API 也是极其简单的, 但是, 功能却是强大的. 正常使用需求下, 基本上就是只关注 Router 一个类型即可.</p>
+<h3>路由系统</h3>
+<p>我自己感觉路由系统是跟其他的框架不太一样的. Router 可以写平，也可以写成树状。这里区业务逻辑树与访问目录树。业务逻辑树是根据业务逻辑需求，划分 router 结构，形成 router 树，它不一定与访问目录树一致。</p>
+<p>正常情况下我们是这样写路由的：</p>
+<pre><code>Router::new().path("articles").get(list_articles).post(create_article);
+Router::new()
+    .path("articles/&lt;id&gt;")
+    .get(show_article)
+    .patch(edit_article)
+    .delete(delete_article);
+</code></pre>
+<p>往往查看文章和文章列表是不需要用户登录的, 但是创建, 编辑, 删除文章等需要用户登录认证权限才可以. Salvo 中支持嵌套的路由系统可以很好地满足这种需求. 我们可以把不需要用户登录的路由写到一起：</p>
+<pre><code>Router::new()
+    .path("articles")
+    .get(list_articles)
+    .push(Router::new().path("&lt;id&gt;").get(show_article));
+</code></pre>
+<p>然后把需要用户登录的路由写到一起， 并且使用相应的中间件验证用户是否登录：</p>
+<pre><code>Router::new()
+    .path("articles")
+    .before(auth_check)
+    .post(list_articles)
+    .push(Router::new().path("&lt;id&gt;").patch(edit_article).delete(delete_article));
+</code></pre>
+<p>虽然这两个路由都有这同样的 <code>path("articles")</code>, 然而它们依然可以被同时添加到同一个父路由, 所以最后的路由长成了这个样子:</p>
+<pre><code>Router::new()
+    .push(
+        Router::new()
+            .path("articles")
+            .get(list_articles)
+            .push(Router::new().path("&lt;id&gt;").get(show_article)),
+    )
+    .push(
+        Router::new()
+            .path("articles")
+            .before(auth_check)
+            .post(list_articles)
+            .push(Router::new().path("&lt;id&gt;").patch(edit_article).delete(delete_article)),
+    );
+</code></pre>
+<p><code>&lt;id&gt;</code>匹配了路径中的一个片段, 正常情况下文章的 <code>id</code> 只是一个数字, 这是我们可以使用正则表达式限制 <code>id</code> 的匹配规则, <code>r"&lt;id:/\d+/&gt;"</code>.</p>
+<p>更多信息可以查看网站 https://salvo.rs</p>
+<p>源码地址: https://github.com/salvo-rs/salvo</p>
+<p>非常欢迎大家为项目贡献力量，可以通过以下方法为项目作出贡献:</p>
+<ul>
+<li>在 issue 中提交功能需求和 bug report;</li>
+<li>在 issues 或者 require feedback 下留下自己的意见;</li>
+<li>通过 pull requests 提交代码;</li>
+<li>在博客或者技术平台发表 Salvo 相关的技术文章。</li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">[已解决]println! 严重拖延效能，仅列印一行</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=ab0d06cb-d33d-4e18-b7b3-0b3e889f7b11">
+<div class="article-summary-box-inner">
+<span><p>当把call函数注解后，或是注解println! 都可以快速运行。</p>
+<p>在 https://play.rust-lang.org/ 上有时候可以 ""使用println! "" 而且依然编译的很快，有时候则不行，我自己本地电脑都不行。</p>
+<p>这效能差了十万八千里，请大家帮忙，新手总是在 println! 跌坑。</p>
+<p>这边使用 <code>cargo run --release</code> 编译</p>
+<pre><code>use std::time::{Duration, Instant};
+
+struct Struct {
+    a: String,
+    b: bool,
+}
+trait Dyn {}
+impl Dyn for Struct {}
+
+fn main() {
+    let start = Instant::now();
+    let mut count = 0;
+    let count_end = 100_000_000i64;
+
+    while count &lt;= count_end {
+        let m: Box&lt;Struct&gt; = Box::new(Struct {
+            b: false,
+            a: "str".to_string(),
+        });
+        if count == count_end {
+            call();               // ---- 这儿
+            m.b;
+            m.a;
+        }
+        count += 1;
+    }
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
+}
+
+fn call(){
+    println!("run call()\n");     // ---- 重点在这儿，注解后变超快
+}
+</code></pre>
+<p>Time:</p>
+<table>
+<thead>
+<tr>
+<th align="right">😫使用println!</th>
+<th align="right">😄注解//println!</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="right">12.863911s</td>
+<td align="right">2.8486ms</td>
+</tr>
+<tr>
+<td align="right">13.2101748s</td>
+<td align="right">2.4661ms</td>
+</tr>
+<tr>
+<td align="right">13.5353751s</td>
+<td align="right">2.0433ms</td>
+</tr>
+<tr>
+<td align="right">13.4852107s</td>
+<td align="right">1.7869ms</td>
+</tr>
+<tr>
+<td align="right">————————</td>
+<td align="right">————————</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust 日报】2021-8-26 Pin,Unpin为什么Rust需要它们</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=59d42687-69e5-4d20-ab8a-e296404fba92">
+<div class="article-summary-box-inner">
+<span><h3>Pin,Unpin为什么Rust需要它们</h3>
+<p>又是一篇讲<code>Pin</code>的blog，是作者本人在学习Rust异步过程中做的一些总结和理解，方便大家在学习异步时遇到相关疑惑可以查阅。</p>
+<p><a href="https://blog.adamchalmers.com/pin-unpin/" rel="noopener noreferrer">Read More</a>: https://blog.adamchalmers.com/pin-unpin/</p>
+<h3><code>Typing the technical interview</code>从Haskell翻译到Rust</h3>
+<p><code>Typing the technical interview</code>是一篇将计算机知识拟作魔法的小说？鉴于小编学识有限，对这篇blog不是很了解，如有对这篇Blog熟悉的小伙伴，可以帮忙介绍一下。原文提到的相关代码都是使用Haskell写的，现在社区里有人将其用Rust重新实现了一遍：</p>
+<p><a href="https://github.com/insou22/typing-the-technical-interview-rust/" rel="noopener noreferrer">Github</a>: https://github.com/insou22/typing-the-technical-interview-rust/</p>
+<p>同时，如果对这篇原文感兴趣的，链接也在这里：</p>
+<p><a href="https://aphyr.com/posts/342-typing-the-technical-interview" rel="noopener noreferrer">Read More</a>: https://aphyr.com/posts/342-typing-the-technical-interview</p>
+<h3>关于Futures和运行时如何工作的心智模型</h3>
+<blockquote>
+<p>这一部分的主要目标是建立一个高层次的心理模型，说明我们在前一章中读到的不同部分是如何一起工作的。我希望这将使我们在接下来的几章中深入研究特质对象和生成器等主题之前，更容易理解高层次的概念。</p>
+</blockquote>
+<blockquote>
+<p>这并不是创建一个异步系统模型的唯一方法，因为我们要对运行时的具体情况进行假设，而这些情况可能会有很大的不同。这是我认为最容易建立的方式，而且对于理解你在异步生态系统中发现的很多真实的实现也很有意义。</p>
+</blockquote>
+<blockquote>
+<p>最后，请注意，由于需要简洁明了，代码本身是 "假的"。</p>
+</blockquote>
+<p><a href="https://cfsamson.github.io/books-futures-explained/2_a_mental_model_for_futures.html" rel="noopener noreferrer">Read More</a>: https://cfsamson.github.io/books-futures-explained/2_a_mental_model_for_futures.html</p>
+<p>From 日报小组 Cupnfish</p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rust.cc 论坛: 支持 rss</a></li>
+<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust 语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【全职远程】30k-50k/硅谷初创公司招/嵌入式开发/中文友好</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=f8bcde1a-4455-455e-ad89-d1e507132c57">
+<div class="article-summary-box-inner">
+<span><p>公司简介
+我们是一家总部位于硅谷的初创公司，公司的核心开发人员来自于Google, 亚马逊，vmware等一线企业，技术实力雄厚。</p>
+<p>岗位要求
+1、本科以上学历，专业不限；热爱编程，不怕麻烦，具有死磕精神；</p>
+<p>2、深入理解Linux操作内核的一个或多个子系统，譬如进程管理、内存管理、设备管理、网络子系统；</p>
+<p>3、深入参与过嵌入式产品开发的整个生命周期，包括但不局限于Bootloader, Kernel, driver, 应用层；</p>
+<p>4、扎实的C语言编程和调试功底，丰富的应用层开发经验，对内存泄漏和段错误处理有过丰富的处理经验；</p>
+<p>5、有独立开发或者主导开发项目经验的应聘者优先考虑；有独立作品来展示自己水平的应聘者优先考虑。</p>
+<p>除了工作所需的必要技能之外，我们还希望您是一个有责任心和好奇心的开发人员，能跟公司一起快速成长。</p>
+<p>职位要求
+在团队负责人的带领参与公司老产品的维护和新产品的研发。</p>
+<p>薪资福利
+1、月薪30k-50k；</p>
+<p>2、入职满一年，表现合格者可以获得公司的股票或期权；</p>
+<p>3、优秀者提供移民美国，加拿大的机会。</p>
+<p>工作方式
+1、远程办公</p>
+<p>2、工作时间：无固定时间，工作完成后自由安排</p>
+<p>3、很少有跨时区的会议，除特殊、紧急工作任务对接外</p>
+<p>4、工作会议主要为中文交流</p>
+<p>工作语言
+1、中文为主，英文为辅；</p>
+<p>2、不要求很强的听说，只要求读写能力及格。</p>
+<p>录用流程
+1、收到简历后，将安排1到3轮电话语音面试（优秀者一轮面试即可）；</p>
+<p>2、电话语音面试结束后，将进入试用期（全额工资）；</p>
+<p>3、试用期结束后，正式开始工作。</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">rust trait套娃实现,</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=bff10963-a6a9-4cc7-a3ce-4cfde731c72e">
+<div class="article-summary-box-inner">
+<span><pre><code>impl&lt;'c, C: ?Sized + Completer&gt; Completer for &amp;'c C {
+    type Candidate = C::Candidate;
+
+    fn complete(
+        &amp;self,
+        line: &amp;str,
+        pos: usize,
+        ctx: &amp;Context&lt;'_&gt;,
+    ) -&gt; Result&lt;(usize, Vec&lt;Self::Candidate&gt;)&gt; {
+        (**self).complete(line, pos, ctx)
+    }
+
+    fn update(&amp;self, line: &amp;mut LineBuffer, start: usize, elected: &amp;str) {
+        (**self).update(line, start, elected)
+    }
+}
+</code></pre>
+<p>这种套娃实现trait的方式如何理解啊， 师傅们有了解的吗</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">远程办公，不限地域，缴纳社保公积金，周末双休，告别 996，拒绝 007，Nervina Labs 欢迎你！</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=a4789334-4646-4a33-86a2-21bc65a50824">
+<div class="article-summary-box-inner">
+<span><p>Rust开发工程师
+岗位职责：
+1、负责智能合约的开发及设计；
+2、负责区块链业务系统分析与设计工作；
+3、负责智能合约代码测试、运行和维护。</p>
+<p>任职要求：
+1、计算机相关专业本科及以上学历，3年以上工作经验；
+2、熟练掌握 C/C++、Rust 等系统开发语言至少一种，至少有过两年相关开发经验；
+3、对数据结构和算法，对密码学，安全协议和加密算法有研究者优先；
+4、优秀的英语文档撰写与阅读能力者优先；
+5、了解区块链，有合约开发经验更佳。
+团队介绍：为什么加入我们
+1、100%远程工作，你可以base在全球任何你想待的地方；</p>
+<p>2、每年至少5天以上的年假，2次旅游工作的机会；</p>
+<p>3、全员高温补贴+电脑补助+网络加速补助</p>
+<p>4、五险一金+入职大礼包</p>
+<p>公司产品
+简洁有趣的产品介绍，能让用户最快速度了解公司业务。把自家优秀的产品展示出来吸引人才围观吧！</p>
+<p>公司介绍
+节点互信由前 Nervos (https://www.nervos.org) 核心应用开发者发起。我们的理想是通过技术和商业努力，让区块链技术尽早落地，让普通用户也能够享受区块链技术带来的价值。我们将与广大传统互联网公司合作，在版权、物权、数字身份等领域打造开放互信共享互通的价值网络平台，帮助传统平台的用户将自己的资产、信息、权益在更开放的区块链平台上实现商业模式升级。</p>
+<p>对待人才，我们有3个关键词：开放、自驱、涌现。我们一直奉行开放和开源的精神，坚信透明是信任的基础，开源是区块链的基石，所有的项目代码均在Github开源。我们100%远程工作，你可以 base 在全球任何一个你想待的地方。我们鼓励员工对自我进行管理，为区块链生态添砖加瓦。你认为整个区块链生态缺什么，你可以提出方案、预算和招聘需求，公司内部讨论通过后可以给你资源让你去实现。</p>
+<p>作为团队的传统，我们每年计划有两次封闭开发的“团建”活动，一般会选在杭州、青岛等风景饮食俱佳的城市，包下一个民宿或者别墅，用一周左右的时候供大家学习交流。如果你喜欢这样的工作方式，欢迎加入我们。</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">来说说rust里你最不喜欢的部分是哪些</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=495cd0ad-4c0b-46db-8585-a2a0de1cb43d">
+<div class="article-summary-box-inner">
+<span><p>先声明，不是黑RUST哦，只是说说RUST中最不讨喜的一些东西而已。
+对我个人来说，最讨厌RUST的宏功能，为什么呢？因为宏功能让RUST的各种库里出现了各种“方言”，RUST的宏功能很强大这个不假，但是这个功能的出现，使得本来就庞杂的RUST进一步出现了更多根本就不在RUST语言里面的“方言”语法，不同的包里不同的方言不同的用法，这会导致RUST的进一步的碎片化，连IDE都无法有效识别宏及里面的语句，RUST本来就繁杂难学，内容众多，宏又进一步加剧了这种情况，使得阅读RUST代码会进一步不直观，所以我最讨厌RUST的宏。
+比如说在tokio里，会有这样的语法</p>
+<p>#[tokio::main]
+pub async fn main() -&gt; Result&lt;()&gt; {
+Ok(())
+}</p>
+<p>想这样的语句需要看tokio的文档才能知道它输出的完全体大概是啥？好不好？挺好，能少输入几行代码。好不好？不好，我得先理解宏，再结合tokio得文档代码示例，才能确切得知道其代表得完整含义。
+总体上来说，我认为RUST得宏功能既是一个神器，却也是一个巨坑，很讨厌。</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">公开课：《 Rust 异步编程入门 Future 》|Vol. 5</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=d2927245-abd1-4ce4-bab2-0870ff229e70">
+<div class="article-summary-box-inner">
+<span><h3>本周公开课：《 Rust 异步编程入门 Future 》|Vol. 5</h3>
+<p><strong>课程时间:</strong> 2021年8月29日 20:00-21:00</p>
+<p><strong>课程介绍:</strong> 讲到 Rust 使用 Future 异步编程，就不得不说 futures 和 tokio 这两个 crate，其实标准库中的 future，以及 async/await 就是从 futures 库中整合进标准库的, Tokio 拥有极快的性能，是大部分系统异步处理的选择，其构建于 future 之上。Future 是 Rust 异步编程的核心基础。</p>
+<h3>课程大纲</h3>
+<p>1、为什么需要异步.</p>
+<p>2、理解异步编程模型.</p>
+<p>3、Future 编程模型讲解.</p>
+<p>4、带领大家实现一个简化版的 future , 再次帮忙大家理解</p>
+<h3><strong>讲师介绍</strong></h3>
+<p><img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/%E8%8B%8F%E6%9E%97%E4%BB%8B%E7%BB%8D.png" alt></p>
+<p><img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/%E6%89%AB%E7%A0%81%E5%8F%82%E4%B8%8E.png" alt></p>
+<p>本次活动由：Datafuse项目、Rust语言中文社区、知数堂 共同发起。后期也欢迎Rust爱好者，Rust优秀项目， Data Cloud 项目来分享，公开课分享合作联系微信：82565387 备注：Rust 。 公开课嘉宾 &amp; Datafuse contributor都可以获取Datafuse纪念T恤。
+<img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/T-shirt.png" alt></p>
+<h3>获取 T-Shirt 的方法：</h3>
+<ol>
+<li>给 https://github.com/datafuselabs/datafuse 提 issue/pr</li>
+<li>进行 Rust，大数据，数据库方面的公开课分享</li>
+<li>社区里分享 datafuse 相关文章</li>
+<li>datafuse.rs 上面文档翻译工作</li>
+</ol>
+<h3>往期课程回放</h3>
+<p>认识面向基础架构语言 Rust | Vol. 1 https://www.bilibili.com/video/BV1mg411778g</p>
+<p>理解 Rust 的所有权 | Vol. 2 https://www.bilibili.com/video/BV1264y1i7U9</p>
+<p>通过实战理解 Rust 宏 | Vol. 3 (https://www.bilibili.com/video/BV1Yb4y1U7r1</p>
+<p>通过 Datafuse 理解全链路跟踪 | Vol. 4 https://www.bilibili.com/video/BV1YA411c7ia/</p>
+<h3>课程中推荐入门资料：</h3>
+<p>Rust在线编辑器: https://play.rust-lang.org/</p>
+<p>《Rust语言程序设计》: https://kaisery.github.io/trpl-zh-cn/</p>
+<p>打怪通关学习方式Rustlings: https://github.com/rust-lang/rustlings</p>
+<p>Rust优秀项目Datafuse： https://github.com/datafuselabs/datafuse</p>
+<p>Rust宏的练习项目： https://github.com/dtolnay/proc-macro-workshop</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust日报】2021-08-19 -- Rust Edition 2021 可能会出现在 Rust 1.56中</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=7a3f7b1a-836a-4eab-a014-e5f354640f8c">
+<div class="article-summary-box-inner">
+<span><h3>Rust Edition 2021 可能会出现在 Rust 1.56中</h3>
+<p>已经在下载次数最多的前 10000 个crate 上测试了版本迁移,并且将测试所有公共的 crate。</p>
+<p>ReadMore:<a href="https://twitter.com/m_ou_se/status/1427666611977297924" rel="noopener noreferrer">https://twitter.com/m_ou_se/status/1427666611977297924</a></p>
+<h3>异步引擎 C++20, Rust &amp; Zig</h3>
+<p>ReadMore:<a href="https://www.reddit.com/r/rust/comments/p63o4g/async_engines_in_c20_rust_zig/" rel="noopener noreferrer">https://www.reddit.com/r/rust/comments/p63o4g/async_engines_in_c20_rust_zig/</a></p>
+<h3>RG3D -- Rust 3D 游戏引擎</h3>
+<ul>
+<li><strong>PC（Windows、Linux、macOS）和 Web (WebAssembly)</strong> 支持。</li>
+<li><strong>延迟着色</strong></li>
+<li><strong>内置保存/加载</strong></li>
+<li><strong>独立场景编辑器</strong></li>
+<li><strong>高级物理模型</strong></li>
+<li><strong>分层模型资源</strong></li>
+<li><strong>几何实例化</strong></li>
+</ul>
+<p>ReadMore:<a href="https://gamefromscratch.com/rg3d-open-source-rust-3d-game-engine/" rel="noopener noreferrer">https://gamefromscratch.com/rg3d-open-source-rust-3d-game-engine/</a></p>
+<p>ReadMore:<a href="https://github.com/rg3dengine/rg3d" rel="noopener noreferrer">https://github.com/rg3dengine/rg3d</a></p>
+<hr>
+<p>From 日报小组 冰山上的 mook &amp;&amp; 挺肥</p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
+<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">公开课: 通过 Datafuse 理解全链路跟踪 | Vol. 4</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=d07779e9-c748-4179-b365-4990a09c55e8">
+<div class="article-summary-box-inner">
+<span><p><strong>本周公开课：《通过Datafuse理解全链路跟踪》| Vol. 4</strong></p>
+<p><strong>课程时间：</strong> 2021年8月22日 20:30-21:30</p>
+<p><strong>课程介绍：</strong> 数据库系统也是一个非常复杂，庞大的系统。特别是在调试和观察SQL执行，多线程任务切换，因为没有内存调用或堆栈跟踪，这也是分布式追踪的由来。这里面涉及到多进行分布式追踪为描述和分析跨进程事务提供了一种解决方案。Google Dapper(Dapper: 大规模分布式系统链路追踪基础设施)论文(各tracer的基础)中描述了分布式追踪的一些使用案例包括异常检测、诊断稳态问题、分布式分析、资源属性和微服务的工作负载建模。</p>
+<p>本次公开课通 Google 的 OpenTraceing 介绍，结合Rust的 tokio-rs/tracing 使用，最终结合 Datafuse 项目给大家展示一下大型应用的全链路跟踪分析过程。</p>
+<p>关于Datafuse : https://github.com/datafuselabs/datafuse</p>
+<h3>课程大纲</h3>
+<ol>
+<li>
+<p>什么是分布式追踪系统OpenTracing及应用场景</p>
+</li>
+<li>
+<p>介绍 tokio-rs/tracing 及在程序开发中的作用</p>
+</li>
+<li>
+<p>为什么需要tokio-rs/tracing库</p>
+</li>
+<li>
+<p>演示Datafuse项目中tokio-rs/tracing的使用</p>
+</li>
+</ol>
+<h3><strong>讲师介绍</strong></h3>
+<p><img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/%E8%8B%8F%E6%9E%97%E4%BB%8B%E7%BB%8D.png" alt></p>
+<p><img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/%E6%89%AB%E7%A0%81%E5%8F%82%E4%B8%8E.png" alt></p>
+<p>本次活动由：Datafuse项目、Rust语言中文社区、知数堂 共同发起。后期也欢迎Rust爱好者，Rust优秀项目， Data Cloud 项目来分享，公开课分享合作联系微信：82565387 备注：Rust 。 公开课嘉宾 &amp; Datafuse contributor都可以获取Datafuse纪念T恤。
+<img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/T-shirt.png" alt></p>
+<h3>获取 T-Shirt 的方法：</h3>
+<ol>
+<li>给 https://github.com/datafuselabs/datafuse 提 issue/pr</li>
+<li>进行 Rust，大数据，数据库方面的公开课分享</li>
+<li>社区里分享 datafuse 相关文章</li>
+<li>datafuse.rs 上面文档翻译工作</li>
+</ol>
+<h3>往期课程回放</h3>
+<p>认识面向基础架构语言 Rust | Vol. 1 https://www.bilibili.com/video/BV1mg411778g</p>
+<p>理解 Rust 的所有权 | Vol. 2 https://www.bilibili.com/video/BV1264y1i7U9</p>
+<p>通过实战理解 Rust 宏 | Vol. 3 (https://www.bilibili.com/video/BV1Yb4y1U7r1</p>
+<h3>课程中苏林老师推荐入门资料：</h3>
+<p>Rust在线编辑器: https://play.rust-lang.org/</p>
+<p>《Rust语言程序设计》: https://kaisery.github.io/trpl-zh-cn/</p>
+<p>打怪通关学习方式Rustlings: https://github.com/rust-lang/rustlings</p>
+<p>Rust优秀项目Datafuse： https://github.com/datafuselabs/datafuse</p>
+<p>Rust宏的练习项目： https://github.com/dtolnay/proc-macro-workshop</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">论坛github账户无法登录解决笔记</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=8be810c8-be92-4ca5-96ed-a5b638952190">
+<div class="article-summary-box-inner">
+<span><p>有反映这两天github账户无法登录了。</p>
+<p>报这个错：</p>
+<pre><code>get github user info err
+</code></pre>
+<p>查了几个地方：</p>
+<ol>
+<li>代码是否运行正常：Ok</li>
+<li>https代理是否正常：Ok</li>
+<li>检查了github返回日志，发现是：</li>
+</ol>
+<pre><code>get_github_user_info: response body: "{\"message\":\"Must specify access token via Authorization header. https://developer.github.com/changes/2020-02-10-deprecating-auth-through-query-param\",\"documentation_url\":\"https://docs.github.com/v3/#oauth2-token-sent-in-a-header\"}"
+get_github_user_info: Got: Err(Custom("read json login error"))
+</code></pre>
+<p>进入这个地址一看：<a href="https://developer.github.com/changes/2020-02-10-deprecating-auth-through-query-param/" rel="noopener noreferrer">https://developer.github.com/changes/2020-02-10-deprecating-auth-through-query-param/</a></p>
+<p>原来2020年2月就已经说了，要改要改。不过我确实没留意到这个信息。：（</p>
+<p>意思就是说access_token不要放在query参数中，而是要放在header里面。照它说的，改了后就好了。</p>
+<p>特此记录。</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Rust 的 Future 与 Javascript 的 Promise 功能对照参考</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=2d0a7629-2740-435f-9ef7-98735bf4f095">
+<div class="article-summary-box-inner">
+<span><h1><code>Rust</code>的<code>Future</code>与<code>Javascript</code>的<code>Promise</code>功能对照参考</h1>
+<p>学习新鲜技术时，我总是会习惯性向曾经熟悉的内容上靠，甚至套用现有的认知模型。这次也不例外，对照<code>Javascript - Promise/A+ API</code>来记忆一部分<code>Rust Future</code>常用<code>API</code>。</p>
+<blockquote>
+<p>注意：所有的<code>Rust - Future</code>操作都是以<code>.await</code>结尾的。这是因为，不同于<code>Javascript - Promise/A+</code>，<code>Rust - Future</code>是惰性的。只有被<code>.await</code>指令激活后，在<code>Rust - Future</code>内封装的操作才会被真正地执行。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>javascript</th>
+<th align="center">rust</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Promise.resolve(...)</td>
+<td align="center">use ::async_std::future;future::ready(Ok(...))</td>
+<td align="center">在 rust 中，Future 自身不区分异步成功，还是异步失败。需要给异步计算结果套上 Result&lt;T, E&gt; 马甲，来做 resolve 与 reject 的差别处理。</td>
+</tr>
+<tr>
+<td>Promise.reject(...)</td>
+<td align="center">use ::async_std::future;future::ready(Err(...))</td>
+<td align="center">在 rust 中，Future 自身不区分异步成功，还是异步失败。需要给异步计算结果套上 Result&lt;T, E&gt; 马甲，来做 resolve 与 reject 的差别处理。</td>
+</tr>
+<tr>
+<td>Promise.catch(err =&gt; err)</td>
+<td align="center">use ::async_std::future;future::ready(...)</td>
+<td align="center">在 rust 中，Future 自身不区分异步成功，还是异步失败。需要给异步计算结果套上 Result&lt;T, E&gt; 马甲，来做 resolve 与 reject 的差别处理。</td>
+</tr>
+<tr>
+<td>new Promise(() =&gt; {/* 什么都不做 */})</td>
+<td align="center">use ::async_std::future;future::pending()</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td>new Promise((resolve, reject) =&gt; setTimeout(() =&gt; { if (Math.random() &gt; .5) { resolve(1); } else { reject(new Error('1')); }}, 500))</td>
+<td align="center">use ::async_std::task;use ::std::{thread, time::Duration};use ::rand::prelude::*;task::spawn_blocking(|| { thread::sleep(Duration::from_millis(500)); let mut rng = rand::thread_rng(); if rng.gen() &gt; 0.5f64 { Ok(1) } else { Err('1') }}).await;</td>
+<td align="center">1. future::poll_fn&lt;F, T&gt;(f: F) -&gt; T where F: FnMut(&amp;mut Context&lt;'_&gt;) -&gt; Poll 不能被用来构造包含了异步操作的 Future 实例，因为【回调闭包】内的【可修改引用】&amp;mut Context&lt;'_&gt; 不能被 （1）跨线程传递 （2）传递出闭包作用域2. task::spawn_blocking() 【回调闭包】输入参数内的 thread::sleep() 不是阻塞运行 task::spawn_blocking() 的主线程，而是阻塞从【阻塞任务线程池】中分配来运行阻塞任务的【工作线程】。</td>
+</tr>
+<tr>
+<td>Promise.all([promise1, promise2, promise3])</td>
+<td align="center">future1.try_join(future2).try_join(future3).await</td>
+<td align="center">1. 有一个 promise/future 失败就整体性地失败。2. try_join 成员方法要求其 Self 为 Future&lt;Output = Result&lt;T, E&gt;&gt;3. 返回结果：Result&lt;(T1, T2, T3), E&gt;</td>
+</tr>
+<tr>
+<td>Promise.all([ promise1.catch(err =&gt; err), promise2.catch(err =&gt; err) promise3.catch(err =&gt; err)])</td>
+<td align="center">future1.join(future2).join(future3).await</td>
+<td align="center">1. promise/future 的成功与失败结果都收集2. 返回结果：(T1, T2, T3)</td>
+</tr>
+<tr>
+<td>Promise.race([promise1, promise2, promise3])</td>
+<td align="center">future1.try_race(future2).try_race(future3).await</td>
+<td align="center">1. 仅只收集第一个成功的 promise/future2. try_race 成员方法要求其 Self 为 Future&lt;Output = Result&lt;T, E&gt;&gt;3. 返回结果：Result&lt;T, E&gt;</td>
+</tr>
+<tr>
+<td>Promise.race([ promise1.catch(err =&gt; err), promise2.catch(err =&gt; err) promise3.catch(err =&gt; err)])</td>
+<td align="center">future1.race(future2).race(future3).await</td>
+<td align="center">1. 收集第一个结束的 promise/future，无论它是成功结束还是失败收场。2. 返回结果：T</td>
+</tr>
+</tbody>
+</table>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Rust公开课：《通过实战理解 Rust 宏》| Vol. 3</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=dfb80624-2266-448f-87b1-d10f1e8d7c21">
+<div class="article-summary-box-inner">
+<span><p><strong>课程主题：</strong>《通过实战理解 Rust 宏》</p>
+<p><strong>课程时间：</strong> 2021年8月15日 20:30-21:30</p>
+<p><strong>课程介绍：</strong></p>
+<p>如果想用 Rust 开发大型目，或者学习大型项目代码，特别是框架级别的项目，那么 Rust 的宏机制肯定是一个必须掌握的技能。 例如 datafuse 中的一些配置管理：
+<img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/3/rust-macro-1628478411126.jpg" alt></p>
+<p>这就是通过宏实现配置的统一行为，代码参考：
+https://github.com/datafuselabs/datafuse/blob/master/fusequery/query/src/sessions/settings.rs#L19</p>
+<p>https://github.com/datafuselabs/datafuse/blob/master/fusequery/query/src/sessions/macros.rs</p>
+<p>Rust 语言强大的一个特点就是可以创建和利用宏，不过创建宏看起来挺复杂，常常令刚接触 Rust 的开发者生畏惧。 在本次公开课中帮助你理解 Rust Macro 的基本原理，学习如何创自已的 Rust 宏，以及查看源码学习宏的实现。</p>
+<h3>课程大纲</h3>
+<ul>
+<li>什么是 Rust 宏</li>
+<li>什么是宏运行原理</li>
+<li>如何创建 Rust 宏过程</li>
+<li>阅读 datafuse 项目源码， 学习项目中宏的实现</li>
+</ul>
+<p><strong>讲师介绍</strong>
+<img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/%E8%8B%8F%E6%9E%97%E4%BB%8B%E7%BB%8D.png" alt></p>
+<p><img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/%E6%89%AB%E7%A0%81%E5%8F%82%E4%B8%8E.png" alt></p>
+<p>本次活动由：知数堂、Datafuse项目、Rust语言中文社区 共同发起。后期也欢迎Rust爱好者，Rust优秀项目， Data Cloud 项目来分享，公开课分享合作联系微信：82565387 备注：Rust 。 公开课嘉宾 &amp; Datafuse contributor都可以获取Datafuse纪念T恤。
+<img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/T-shirt.png" alt></p>
+<h3>课程中苏林老师推荐入门资料：</h3>
+<p>Rust在线编辑器: https://play.rust-lang.org/</p>
+<p>《Rust语言程序设计》: https://kaisery.github.io/trpl-zh-cn/</p>
+<p>打怪通关学习方式Rustlings: https://github.com/rust-lang/rustlings</p>
+<p>Rust优秀项目Datafuse： https://github.com/datafuselabs/datafuse</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Rust公开课：理解Rust的所有权| Vol 2</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=c107b830-9fe1-43dd-94a3-9efcd5544205">
+<div class="article-summary-box-inner">
+<span><p><strong>课程主题：《理解Rust所有权》</strong></p>
+<p><strong>课程时间：2021年8月8日 20:30-21:30</strong></p>
+<p><strong>嘉宾讲师： 苏林</strong></p>
+<p><strong>嘉宾介绍：</strong></p>
+<p>Rust中文社区成员，多点Dmall技术Leader，前折800互联网研发团队负责人、10余年一线研发经验。具有多年的软件开发经验, 熟练Ruby、Java、Rust等开发语言, 同时也参与过Rust中文社区日报维护工作。</p>
+<p><strong>课程介绍</strong></p>
+<p>本次课程通过10个左右的小例子，带大家理解一下Rust的所有权，Rust引用和借用，Rust变量克隆和复制的理念。</p>
+<p><strong>参加课程</strong>
+<img src="https://datafuse-1255499614.cos.ap-beijing.myqcloud.com/pbc/Rust-pbc-1.jpg" alt></p>
+<p><strong>课程规划</strong></p>
+<p>本次活动由：知数堂、Datafuse项目、Rust语言中文社区 共同发起。后期也欢迎Rust爱好者，Rust优秀项目， Data Cloud项目来分享，公开课分享合作联系微信：82565387 备注：Rust 。 公开课嘉宾 &amp; Datafuse contributor都可以获取Datafuse纪念T恤。</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">数据表 Timestamp 日期 Serialize</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=2ff8a69e-59bb-4502-87c0-c3416ffae8a0">
+<div class="article-summary-box-inner">
+<span><p>主要参考：<a href="https://github.com/rustcc/forustm" rel="noopener noreferrer">Rustcc网站源码库</a></p>
+<p>在处理数据表中日期相关数据时，Seralize序列化相关操作会报错，提示 DateTime 字段不识别，
+查了 rustcc 源码才发现依赖中需要开启相应的feature。特此记录。</p>
+<h2>1.依赖的库：</h2>
+<pre><code>[dependencies]
+# 日期时间处理 需要开启 serde 特征 支持序列化
+chrono = { version = "0.4.19", features = ["serde"] }
+
+# 数据库ORM
+diesel = { version = "1.4.4", features = ["postgres", "chrono", "uuid", "r2d2"] }
+dotenv = "0.15.0"
+serde = { version = "1.0.127", features = ["derive"] }
+serde_json = "1.0.66"
+uuid = { version = "0.8.2", features = ["serde", "v4"] }
+</code></pre>
+<h2>2.创建数据表</h2>
+<pre><code>CREATE TABLE characters (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(128) UNIQUE NOT NULL,
+    age INTEGER NOT NULL DEFAULT 0,
+    friends VARCHAR NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+</code></pre>
+<h2>3.数据表对应的 model</h2>
+<pre><code>use chrono::{NaiveDateTime};
+use serde::{Deserialize, Serialize};
+
+#[derive(Queryable, Serialize, Deserialize, Debug)]
+pub struct Characters {
+    pub id: i32,
+    pub name: String,
+    pub age: i32,
+    pub friends: String,
+    // 这里的 NaiveDateTime 日期格式序列化需要开启相关 features
+    pub created_at: NaiveDateTime,
+}
+</code></pre>
+<h2>4.获取数据</h2>
+<pre><code>use db::schema::characters;
+use db::{get_connection};
+use db::models::{Characters, NewCharacter};
+use db::schema::characters::dsl::*;
+use diesel::QueryDsl;
+use diesel::prelude::*;
+
+fn main() {
+    let conn = get_connection();
+
+    // 查询年龄大于30的10条数据
+    let arr: Vec&lt;Characters&gt; = characters.filter(characters::age.gt(30))
+        .limit(10)
+        .load::&lt;Characters&gt;(&amp;conn)
+        .expect("Loading Error");
+
+    let date_arr = arr.iter()
+        .map(|item| {
+	    // 数据格式化
+            let t = item.created_at.format("%Y-%m-%d %H:%M:%S").to_string();
+            println!("{} {}", item.name, t);
+            t
+        })
+        .collect::&lt;Vec&lt;String&gt;&gt;();
+}
+</code></pre>
+<p>输出结果类似：</p>
+<pre><code>Box 2021-08-05 09:39:34
+Bobe 2021-08-05 09:39:34
+</code></pre>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Cargo workspace config</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=c3dcce30-1fc0-4819-8992-142365c7e21c">
+<div class="article-summary-box-inner">
+<span><p><a href="https://kaisery.github.io/trpl-zh-cn/ch14-03-cargo-workspaces.html" rel="noopener noreferrer">Workspace 文档链接</a></p>
+<h2>目录结构</h2>
+<pre><code>workspace-test/
+    Cargo.toml
+    db/
+        src/
+            bin/
+                init.rs
+        Cargo.tml
+</code></pre>
+<h2>workspace</h2>
+<p>workspace-test/Cargo.toml</p>
+<pre><code>[workspace]
+members = ["db"]
+default-member = "db"
+</code></pre>
+<h2>子项目</h2>
+<p>workspace-test/db/Cargo.toml</p>
+<pre><code>[package]
+name = "db"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+
+# 可选的可执行文件配置
+# [[bin]]
+# name = "init"
+# path = "src/bin/init.rs"
+</code></pre>
+<h2>操作</h2>
+<pre><code># 运行 init
+cargo run --bin init
+# -p 指定项目
+cargo run -p db --bin init
+</code></pre>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Rust 异步编程浅悟（一）</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=120035c3-944d-4a79-9b3a-8390697a6e13">
+<div class="article-summary-box-inner">
+<span><h1><code>Rust</code>异步编程浅悟（一）</h1>
+<p>不同于<code>javascript</code>的<code>new Promise((resolve, reject) =&gt; {...})</code>构造即运行，<code>Rust</code>中的<code>Future</code>是·惰性·状态机。这体现为：</p>
+<ol>
+<li>【调用异步函数】或【执行异步块】仅只构造一个<code>Future trait object</code>。</li>
+<li>因为<code>Future</code>是惰性状态机，所以它不会自动执行【异步函数】或【异步块】内的任何一行代码 --- 此点与<code>javascript</code>的·活性·状态机完全不同。相反，需要人工激活触发。</li>
+<li>人工启动<code>Future</code>运行，又分为两个场景的两种情况：
+<ol>
+<li>
+<p>已经在<code>async fn</code>内，<code>Future.await</code>激活。但，同时<strong>阻塞</strong>当前异步程序执行流。</p>
+</li>
+<li>
+<p>在<code>async fn</code>外，需要借助由【运行时】提供的【执行器】。就<code>async-std</code>库而言，有两个选择：</p>
+<ol>
+<li><code>task::block_on(Future)</code> 执行<code>Future</code>且阻塞当前线程直到<code>Future</code>被完成。</li>
+<li><code>task::spawn(Future)</code>仅执行<code>Future</code>和不阻塞当前线程。</li>
+</ol>
+<p>无论选择上面哪种方式，若在<code>Future</code>执行期间出现了<code>panic</code>，其都会终止（<code>abort</code>）正在共享同一个执行线程（<code>thread</code>）的所有<code>task</code>（·无栈·协程）的运行。</p>
+</li>
+</ol>
+</li>
+</ol>
+<p>题外话，</p>
+<ol>
+<li>绿色线程是·有栈·协程；异步函数与异步块是·无栈·协程。</li>
+<li>在<code>async-std</code>库的词汇表内，协程被称作<code>task</code>而不是惯例的<code>coroutine</code>。</li>
+<li><code>task::spawn(Future)</code>也能被使用于<code>async fn</code>或<code>async {...}</code>内。它被用来代替<code>.await</code>指令，以<strong>非阻塞</strong><code>async fn</code>或<code>async {...}</code>的方式，激活与执行一个<code>Future</code>实例。</li>
+</ol>
+<h2>例程</h2>
+<pre><code>async fn accept_loop(addr: impl ToSocketAddrs) -&gt; Result&lt;()&gt; {
+    // 1. TcpListener::bind(addr) 返回 Future
+    // 2. .await 于 Future 取得 Result&lt;T, E&gt;
+    // 3. Result&lt;T, E&gt;? 再拿得 Ok&lt;T&gt; 中的 T
+    let listener = TcpListener::bind(addr).await?; // 异步函数内的人工启动 Future
+    let mut incoming = listener.incoming();
+    // 因为没有从语言层面支持 async for loop，所以 while loop + Iterator&lt;Item = T&gt; 来模拟之。
+    while let Some(stream) = incoming.next().await {
+        // TODO
+    }
+    Ok(())
+}
+fn main() {
+    let fut = accept_loop("127.0.0.1:8080");
+    task::block_on(fut); // 异步函数外的人工启动 Future
+}
+</code></pre>
+</span>
+</div>
+</a>
+</details>
+</article>
+</section>
+</section>
+</li>
+</ul>
+</section>
+<section class="daily-content">
+<h2 class="daily-heading">
 <time datetime="2021-08-27T01:30:00Z">08-27</time>
 </h2>
 <ul class="sources card">
@@ -947,7 +1871,7 @@ former.
 </ul>
 </section>
 <footer>
-<time id="build-timestamp" datetime="2021-08-28 23:31:46.970299912 UTC">2021-08-28 23:31:46 UTC</time>
+<time id="build-timestamp" datetime="2021-08-29 01:13:59.935179815 UTC">2021-08-29 01:13:59 UTC</time>
 <span><a class="footer-link" href="https://github.com/NotCraft/NotFeed"> notfeed 0.2.1</a></span>
 </footer>
 <script src="index.js"></script>
