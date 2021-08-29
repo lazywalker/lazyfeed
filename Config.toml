@@ -1,7 +1,8 @@
 site_title = "ArxivDaily"
 cache_max_days = 7
 sources = [
-    "http://export.arxiv.org/rss/cs.CL"
+    "http://export.arxiv.org/rss/cs.CL",
+    "https://rustcc.cn/rss"
 ]
 
 minify = true                     ## Optional: default is false
