@@ -12,13 +12,818 @@
 <body>
 <section class="daily-content">
 <h2 class="daily-heading">
-<time datetime="2021-09-03T01:51:21.306152010Z">09-03</time>
+<time datetime="2021-09-04T01:51:47.746750354Z">09-04</time>
 </h2>
 <ul class="sources card">
 <li class="source">
 <section>
 <h3 class="source-name">Rust.cc</h3>
 <section class="articles-per-source">
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">argh：基于 derive 宏且对二进制体积进行优化的命令行解析工具</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=01a3db1f-b567-47d4-9c3b-08142a11cd3e">
+<div class="article-summary-box-inner">
+<span><blockquote>
+<p>Derive-based argument parsing optimized for code size and conformance to the Fuchsia commandline tools specification.</p>
+<p>基于 derive 宏的参数解析工具，针对代码大小进行了优化，并且遵循 Fuchsia 命令行工具规范。</p>
+</blockquote>
+<p>repo：<a href="https://github.com/google/argh" rel="noopener noreferrer">https://github.com/google/argh</a></p>
+<p>由 Google 开发者编写，但并非 Google 官方支持。</p>
+<p>官方给的基本例子：</p>
+<pre><code>use argh::FromArgs;
+
+#[derive(FromArgs)]
+/// Reach new heights.
+struct GoUp {
+    /// whether or not to jump
+    #[argh(switch, short = 'j')]
+    jump: bool,
+
+    /// how high to go
+    #[argh(option)]
+    height: usize,
+
+    /// an optional nickname for the pilot
+    #[argh(option)]
+    pilot_nickname: Option&lt;String&gt;,
+}
+
+fn main() {
+    let up: GoUp = argh::from_env();
+}
+</code></pre>
+<pre><code>Usage: cmdname [-j] --height &lt;height&gt; [--pilot-nickname &lt;pilot-nickname&gt;]
+
+Reach new heights.
+
+Options:
+  -j, --jump        whether or not to jump
+  --height          how high to go
+  --pilot-nickname  an optional nickname for the pilot
+  --help            display usage information
+</code></pre>
+<p>过程宏-参数类型：</p>
+<ul>
+<li><code>switch</code>：用在 bool 类型的字段上，表明命令行参数是可选的，而且一旦提供该命令行参数，则给该字段的值赋给 true 。</li>
+<li><code>option</code>：
+<ul>
+<li>用在 <code>Option</code> 类型上，表明命令行参数是可选的。</li>
+<li>用在 <code>Vec</code> 类型上，表明命令行参数可选，而且可以重复出现，即这个参数及其值可以在命令行中出现 0 次或更多次。</li>
+<li>用在非 <code>Option</code> 、非 <code>Vec</code> 类型上，则表示命令行参数必选。</li>
+</ul>
+</li>
+<li><code>positional</code>：位置参数，表明按照结构体声明的字段顺序解析命令行参数，无需 <code>--xx value</code> 的 <code>--xx</code> 。最后一个位置参数可以包含默认值，也可以包装在 Option 或 Vec 中来接收可选（指 0 或 1 个）或重复（指 0 或多个）的位置参数。</li>
+<li><code>subcommand</code>：需定义一个顶层结构体、一个表示子命令的枚举体（这个枚举体列举所有子命令，子命令以结构体形式呈现，子命令结构体还需要 name 设置名称）</li>
+</ul>
+<p>过程宏-其他设置：</p>
+<ul>
+<li><code>short = 'a'</code>：解析 <code>-a</code> 形式的简短参数，只支持 ascii 的 <code>Char</code> 类型，比如大小写、数字。</li>
+<li><code>long = "xx-xx"</code>：重新命名这个字段的参数名称，由此可允许参数名称带连字符 <code>--xx-xx</code>。这个设置的默认值为字段名称，只支持 ascii 小写形式的名称，不支持大写和数字。</li>
+<li><code>default = "default_height()")</code>、<code>default = "String::from(\"only up\")")</code>：默认值，引号内可以是函数名（带括号）、表达式</li>
+<li><code>from_str_fn(always_five)</code>：针对某个解析的参数进行自定义处理，<code>always_five</code> 的函数签名方式为 <code>fn(&amp;str) -&gt; Result&lt;T, String&gt;</code></li>
+<li><code>description = "xxxxx"</code>：给参数添加帮助信息。<code>///</code> 文档注释也可以提供用帮助信息，而 <code>description</code> 的内容在命令行帮助信息里会覆盖掉 <code>///</code> 提供的信息。注意：换行和空换行会在 --help 信息里变成一个空格；描述信息不能过长，否则会出现 <code>error: invalid reference to positional arguments 4 and 5 (there is 1 argument</code> （这个报错信息不准确，我也是排查了很久才发现）。</li>
+</ul>
+<p>trait：</p>
+<ul>
+<li><code>FromArgs</code> trait：用于 argh 命令行解析的所有结构体和枚举体，都必须 derive 这个 trait 。</li>
+<li><code>FromArgValue</code> trait：用于 argh 命令行解析的结构体字段的类型必须实现这个 trait ，argh 已经给所有实现 <code>FromStr</code> trait 的类型实现了这个 trait 。std 的基础类型都实现了 <code>FromStr</code> trait ，所以可以直接使用 std 的基础类型；自定义类型需要实现 <code>FromStr</code> trait 和 <code>FromArgValue</code> trait 。</li>
+</ul>
+<p>优点：</p>
+<ul>
+<li>使用简单而直观，上手快，适用于基础的命令行解析场景</li>
+<li>生成的体积比 clap 小</li>
+<li>依赖少，编译速度快</li>
+<li>支持 unicode</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>终端输出结果非彩色</li>
+<li>默认不支持很长的 help 信息；只支持 <code>--help</code> 不支持 <code>-h</code> （但是也带来优点——可以自定义一个字段，short as <code>-h</code>，从而有一份默认简洁的 help info，又有一份完全自定义的 info，比如 <code>#[argh(option, short = 'h')] description: Vec&lt;String&gt;</code> =&gt; <code>cmd -h arg1 arg2</code> 就可以显示 arg1 和 arg2 的说明）</li>
+<li>只支持 <code>--option value</code> 和 <code>-o value</code>，不支持 <code>--option=value</code> 和 <code>-ovalue</code></li>
+</ul>
+<p>其他 args-parser：</p>
+<blockquote>
+<ul>
+<li><a href="https://github.com/blyxxyz/lexopt" rel="noopener noreferrer">lexopt</a>：零依赖、注重正确性的极简 args-parser 。</li>
+<li><a href="https://github.com/clap-rs/clap" rel="noopener noreferrer"><code>clap</code></a>/<a href="https://github.com/TeXitoi/structopt" rel="noopener noreferrer"><code>structopt</code></a>: very fully-featured. The only other argument parser for Rust I know of that truly handles invalid unicode properly, if used right. Large.</li>
+<li><a href="https://github.com/google/argh" rel="noopener noreferrer"><code>argh</code></a> and <a href="https://github.com/murarth/gumdrop" rel="noopener noreferrer"><code>gumdrop</code></a>: much leaner, yet still convenient and powerful enough for most purposes. Panic on invalid unicode.
+<ul>
+<li><code>argh</code> adheres to the <a href="https://fuchsia.dev/fuchsia-src/concepts/api/cli#command_line_arguments" rel="noopener noreferrer">Fuchsia specification</a> and therefore does <em>not</em> support <code>--option=value</code> and <code>-ovalue</code>, only <code>--option value</code> and <code>-o value</code>.</li>
+</ul>
+</li>
+<li><a href="https://github.com/RazrFalcon/pico-args" rel="noopener noreferrer"><code>pico-args</code></a>: slightly smaller than lexopt and easier to use (but less rigorous).</li>
+<li><a href="https://docs.rs/ap" rel="noopener noreferrer"><code>ap</code></a>: I have not used this, but it seems to support iterative parsing while being less bare-bones than lexopt.</li>
+<li>libc's <a href="https://en.wikipedia.org/wiki/Getopt#Examples" rel="noopener noreferrer"><code>getopt</code></a>.</li>
+</ul>
+<p>src: <a href="https://github.com/blyxxyz/lexopt#see-also" rel="noopener noreferrer">https://github.com/blyxxyz/lexopt#see-also</a></p>
+</blockquote>
+<p>P.S. 不得不说，Rust 利用抽象的类型系统和宏，在 args-parser 方面太棒了。写 Rust 是一种享受。</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">爱死你了，阿克苏姆</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=628500dc-3232-40ff-98f8-03540eaa5d12">
+<div class="article-summary-box-inner">
+<span><p>最近花了点时间来学习axum, 并成功将一个用warp写的项目改用axum重写。axum太棒了，充分体现了rust这门语言的表达能力。</p>
+<ol>
+<li>路由设计非常简洁，演示了Rust不用宏，也可以搞DSL的方法。</li>
+<li>Extractor与AddExtension极为灵活，简化了warp通过构建参数获取Request与环境数据的设计。</li>
+<li>借用Tower生态提高了代码利用率。</li>
+</ol>
+<p>axum非常稳定，压力测试中同时开15K并发妥妥的。在axum面世之前，warp是最棒的web框架，现在该是阿克苏姆担当主角了。由于两者都是基于hyper平台，从warp移植到axum也是分分钟的事。
+下面贴出实战项目中两段代码main.rs与servce.rs。main.rs中演示了如何通过命令行参数切换，实现http与https两种服务，还演示了如何调用了静态文件服务功能。service.rs是放api的地方，演示了如何处理get与post请求，如何获取数据库中的数据，如何提供动态下载内容等功能。</p>
+<pre><code>//main.rs
+mod addr;
+mod base16;
+mod bb8_tiberius;
+mod ccb_gwk;
+mod ccb_socket;
+mod config;
+mod context;
+mod database;
+mod json_helper;
+mod json_value;
+mod parse_exp;
+mod parse_param;
+mod service;
+mod service_da;
+
+use axum::{http::StatusCode, Router};
+use tower_http::services::ServeDir;
+
+use std::env::args;
+
+use chrono::prelude::*;
+use context::AppContext;
+use json_helper::JsonHelper;
+use json_value::JsonValue;
+
+const VERSION: &amp;str = "1.3.0";
+
+#[tokio::main]
+async fn main() {
+    pretty_env_logger::init_timed();
+
+    let is_https = args().nth(1).unwrap_or("http".into()) == "https";
+
+    let context = AppContext::new().await;
+    let ctx = context.clone();
+    let config = &amp;ctx.config;
+    let server_config = &amp;config["config"];
+    let ctx = context.clone();
+    let app = Router::new()
+        .nest(
+            "/",
+            axum::service::get(ServeDir::new("D:/Js/OnlyOne/public")).handle_error(
+                |error: std::io::Error| {
+                    Ok::&lt;_, std::convert::Infallible&gt;((
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("Unhandled internal error: {}", error),
+                    ))
+                },
+            ),
+        )
+        .nest("/api", service::api(ctx));
+
+    let addr = addr::Addr::new(server_config, is_https);
+    let now = Local::now().to_string();
+    let now = &amp;now[0..19];
+    println!(
+        "{} HTTP{} Server V{} is starting at {:19}, {}",
+        server_config["server_name"].string("W3"),
+        if is_https { "S" } else { "" },
+        VERSION,
+        now,
+        addr
+    );
+
+    let addr = addr.to_string_full();
+
+    if is_https {
+        axum_server::bind_rustls(addr)
+            .private_key_file("key.pem")
+            .certificate_file("cert.pem")
+            .serve(app)
+            .await
+            .unwrap();
+    } else {
+        axum_server::bind(addr).serve(app).await.unwrap();
+    }
+}
+
+</code></pre>
+<pre><code>//service.rs
+use crate::base16;
+use crate::ccb_gwk;
+use crate::database;
+use crate::parse_param;
+use crate::service_da::{da_read_about, da_write_about, download_photos, DA_WEBP_DISABLE};
+use crate::AppContext;
+use crate::JsonHelper;
+use crate::JsonValue;
+use anyhow::{anyhow, Result};
+use encoding::{all::GB18030, EncoderTrap, Encoding};
+use serde_json::{json, Value};
+use std::collections::HashMap;
+use std::sync::Arc;
+use tiberius::ToSql;
+use tracing::info;
+
+use axum::{
+    extract::{Extension, Form, Query},
+    response::Json,
+    handler::{get, post},
+    http::header::{HeaderMap, HeaderName, HeaderValue},
+    routing::BoxRoute,
+    AddExtensionLayer, Router,
+};
+
+fn string_to_gb18030bytes(string: &amp;str) -&gt; Result&lt;Vec&lt;u8&gt;&gt; {
+    GB18030
+        .encode(string, EncoderTrap::Strict)
+        .map_err(|e| anyhow!("string_to_gb18030bytes failure: {:?}", e))
+}
+
+pub(crate) fn api(ctx: Arc&lt;AppContext&gt;) -&gt; Router&lt;BoxRoute&gt; {
+    Router::new()
+        .route("/ask", get(ask))
+        .route("/act", post(act))
+        .layer(AddExtensionLayer::new(ctx))
+        .boxed()
+}
+
+
+pub(crate) async fn ask(
+    Query(qs): Query&lt;HashMap&lt;String, String&gt;&gt;,
+    Extension(context): Extension&lt;Arc&lt;AppContext&gt;&gt;,
+) -&gt; (HeaderMap, Vec&lt;u8&gt;) {
+    let mut headers = HeaderMap::new();
+    //let qs=format!("{:?}",qs);
+    //let bytes=Vec::from(json!({"ask":qs}).to_string());
+
+    let empty = String::from("");
+    let dbs = context.dbs.clone();
+    let ask = qs.get("ask").unwrap_or(&amp;empty).clone();
+    let params = base16::base16_decode(qs.get("params").unwrap_or(&amp;empty)).unwrap();
+    let params: Value = serde_json::from_str(&amp;params).unwrap();
+    info!("ask={} params={}", ask, params);
+    //let content_type = "application/json";
+    let p1: JsonValue;
+    let p2: JsonValue;
+    let p3: JsonValue;
+    let p4: JsonValue;
+    let p5: JsonValue;
+    let pof = |id| JsonValue::of(&amp;params[id]);
+    let static_path = context.config["config"]["static_path"].string("wwwroot");
+    let da_webp_active = context.config["config"]["da_webp_active"].bool(false);
+    let accept_webp = params["acceptWebp"].bool(false);
+    let da_webp_quality = if da_webp_active &amp;&amp; accept_webp {
+        context.config["config"]["da_webp_quality"].i64(20) as i8
+    } else {
+        DA_WEBP_DISABLE
+    };
+    let mut sql: String = "".into();
+    let mut sql_params: Vec&lt;&amp;dyn ToSql&gt; = Vec::new();
+    let mut pending = true;
+    let mut result: String = "null".into();
+    let mut about_file: String = "".into();
+    let mut voucher_id: &amp;str = &amp;empty;
+    let mut attach: String = "".into();
+
+    if ask == "@login" {
+        sql = r"EXEC TM_OnlyOneLogin @P1,@P2".into();
+        p1 = pof("userId");
+        p2 = pof("password");
+        sql_params = vec![&amp;p1, &amp;p2];
+    } else if ask == "workload" {
+        sql = "EXEC TM_WorkLoad @P1,@P2,@P3".into();
+        p1 = pof("userName");
+        p2 = pof("year");
+        let more_where = if params["limitMonth"].bool(false) {
+            let month_from = params["monthFrom"].i64(1);
+            let month_to = params["monthTo"].i64(13);
+            let month_to = if month_to &lt; month_from {
+                month_from
+            } else {
+                month_to
+            };
+            format!(
+                " AND z.kjqj BETWEEN '{:02}' AND '{:02}'",
+                month_from, month_to
+            )
+        } else {
+            "".to_string()
+        };
+        //println!("moreWhere:{}",more_where);
+        p3 = JsonValue::new(json!(more_where));
+        sql_params = vec![&amp;p1, &amp;p2, &amp;p3];
+    } else if ask == "wujinFH" {
+        sql = "EXEC dbo.TM_UpdateOracleWSZZ4WujinFH @P1,@P2".into();
+        p1 = pof("p1");
+        p2 = pof("p2");
+        sql_params = vec![&amp;p1, &amp;p2];
+    } else if ask == "salaryVoucher" {
+        sql = "EXEC dbo.TM_MakeSalaryVoucher @P1,@P2".into();
+        p1 = pof("period");
+        p2 = pof("personType");
+        sql_params = vec![&amp;p1, &amp;p2];
+    } else if ask == "salaryVoucherBank" {
+        sql = "EXEC dbo.TM_GetSalaryBankDetail @P1,@P2".into();
+        p1 = pof("period");
+        p2 = pof("personType");
+        sql_params = vec![&amp;p1, &amp;p2];
+    } else if ask == "salaryVoucherSheet" {
+        sql = "EXEC dbo.TM_GetSalaryVoucher @P1".into();
+        p1 = pof("batch");
+        sql_params = vec![&amp;p1];
+    } else if ask == "checkncye" {
+        sql = "EXEC dbo.TM_CheckNCYE @P1,@P2".into();
+        p1 = pof("year");
+        p2 = pof("tblname");
+        sql_params = vec![&amp;p1, &amp;p2];
+    } else if ask == "py2code" {
+        sql = "EXEC dbo.TM_PY2Code @P1,@P2".into();
+        p1 = pof("type");
+        p2 = pof("code");
+        sql_params = vec![&amp;p1, &amp;p2];
+    } else if ask == "@aboutvoucher" {
+        sql = "EXEC dbo.TM_AboutVoucher @P1".into();
+        p1 = pof("pznm");
+        sql_params = vec![&amp;p1];
+    } else if ask == "@voucherphotos" {
+        voucher_id = params["voucherId"].str("");
+        match da_read_about(voucher_id, &amp;static_path, da_webp_quality).await {
+            Ok((about_file_exists, read_result, about_file_name)) =&gt; {
+                about_file = about_file_name;
+                if about_file_exists {
+                    result = format!("{{\"msg\":\"ok\", \"data\":{}}}", read_result);
+                    pending = false;
+                }
+            }
+            Err(e) =&gt; {
+                result = format!("{{\"msg\":\"{:?}\"}}", e);
+                pending = false;
+            }
+        }
+        if pending {
+            sql = "EXEC dbo.TM_VoucherPhotos @P1".into();
+            p1 = pof("voucherId");
+            sql_params = vec![&amp;p1];
+        }
+    } else if ask == "@aboutreceipt" {
+        sql = "EXEC dbo.TM_AboutReceipt @P1,@P2,@P3,@P4,@P5".into();
+        p1 = pof("id");
+        p2 = pof("checkSum");
+        p3 = pof("datePaid");
+        p4 = pof("amount");
+        p5 = pof("checker");
+        sql_params = vec![&amp;p1, &amp;p2, &amp;p3, &amp;p4, &amp;p5];
+    } else if ask == "payee" {
+        sql = "EXEC dbo.TM_QueryPayee @P1,@P2".into();
+        p1 = pof("bankName");
+        p2 = pof("bankAcct");
+        sql_params = vec![&amp;p1, &amp;p2];
+    } else if ask == "ledger" || ask == "voucher" {
+        // CREATE PROCEDURE dbo.TM_QueryLedgerExt
+        // @起始年 INT,@终止年 INT,@查询条件 VARCHAR(4096),@排序 VARCHAR(80)='日期,凭证号,笔号',
+        // @借贷对冲 BIT=0,@隐藏负值 BIT=0,@Select VARCHAR(250)='*'
+        let params = parse_param::params_convert(&amp;context.config, &amp;ask, &amp;params);
+        let pof = |id| JsonValue::of(&amp;params[id]);
+        let only_sum_line = if ask == "ledger" { ",1" } else { ",0" };
+        sql = "EXEC dbo.TM_QueryLedgerExt @P1,@P2,@P3,@P4,0,0,@P5".to_string() + only_sum_line;
+        p1 = pof("yearFrom");
+        p2 = pof("yearTo");
+        p3 = pof("filter");
+        p4 = pof("orderby");
+        p5 = pof("select");
+        sql_params = vec![&amp;p1, &amp;p2, &amp;p3, &amp;p4, &amp;p5];
+    } else if ask == "balance" {
+        // CREATE PROCEDURE dbo.TM_QueryBalanceExt
+        // @起始年 INT,@终止年 INT,@查询条件 VARCHAR(4096),@期初条件 VARCHAR(4096)=NULL,
+        // @年初条件 VARCHAR(4096)=NULL,@余额条件 VARCHAR(250)=NULL,
+        // @顶层 VARCHAR(10)='科目1级',@底层 VARCHAR(10)='科目4级',
+        // @合并 INT=NULL,@合计 BIT=0,@仅底层 BIT=0,@仅编码 BIT=0,@倍率 INT=1,@查项目余额 BIT=0
+        let params = parse_param::params_convert(&amp;context.config, &amp;ask, &amp;params);
+        let pof = |id| JsonValue::of(&amp;params[id]);
+        sql = format!(
+            "EXEC dbo.TM_QueryBalanceExt @P1,@P2,@P3,@P4,@P5{}",
+            params["params_in_sql"].str("")
+        );
+        p1 = pof("yearFrom");
+        p2 = pof("yearTo");
+        p3 = pof("filter");
+        p4 = pof("filter_qc");
+        p5 = pof("filter_nc");
+        sql_params = vec![&amp;p1, &amp;p2, &amp;p3, &amp;p4, &amp;p5];
+    }
+    if pending {
+        let result_json = if !sql.is_empty() {
+            let row_is_obj = ask.starts_with('@');
+            let result = database::query(dbs, &amp;sql, &amp;sql_params, row_is_obj).await;
+            match result {
+                Ok(result) =&gt; {
+                    if ask == "ledger" {
+                        let params =
+                            parse_param::params_convert(&amp;context.config, "voucher", &amp;params);
+                        json!({ "msg":"ok","voucherColDefs":params["select"], "data":result})
+                    } else if ask == "@voucherphotos" {
+                        let row_count = result["rowCount"].u64(0);
+                        if row_count &gt; 0 {
+                            let result = download_photos(context, result, da_webp_quality).await;
+                            match da_write_about(&amp;about_file, &amp;result).await {
+                                Ok(_) =&gt; json!({ "msg":"ok", "data":result}),
+                                Err(e) =&gt; json!({ "msg": format!("{:?}", e) }),
+                            }
+                        } else {
+                            json!({
+                                "msg": format!("没有找到凭证{}的影像资料", voucher_id)
+                            })
+                        }
+                    } else if ask == "salaryVoucherSheet" {
+                        let empty_vec: Vec&lt;Value&gt; = Vec::new();
+                        let sheet = result["rows"].as_array().unwrap_or(&amp;empty_vec);
+                        let sheet = sheet
+                            .iter()
+                            .map(|x| x.get(0).unwrap_or(&amp;Value::Null).string(""))
+                            .fold("".to_string(), |lines, line| lines + &amp;line + "\r\n");
+                        attach = sheet;
+                        json!("attachment")
+                    } else {
+                        json!({ "msg":"ok", "data":result})
+                    }
+                }
+                Err(err) =&gt; {
+                    json!({ "msg": format!("{:?}", err) })
+                }
+            }
+        } else if ask == "checkgwk" {
+            let check_all = params["checkAll"].bool(false);
+            ccb_gwk::check_gwk(&amp;context.config, check_all)
+                .await
+                .unwrap()
+        } else {
+            json!({ "msg": format!("unknown ask {} params:{}", ask, params.to_string()) })
+        };
+        result = format!("{}", result_json);
+    }
+    if ask == "salaryVoucherSheet" {
+        let file_name = params["fileName"].str("凭证");
+        let value = format!("attachment;filename={}.txt", file_name);
+        let bytes: Vec&lt;u8&gt; = string_to_gb18030bytes(&amp;attach).unwrap_or_default();
+        //reply::with_header(bytes, "Content-disposition", value)
+        headers.insert(
+            HeaderName::from_static("content-type"),
+            HeaderValue::from_static("text/plain"),
+        );
+        headers.insert(
+            HeaderName::from_static("content-disposition"),
+            HeaderValue::from_str(&amp;value).unwrap(),
+        );
+        (headers, bytes)
+    } else {
+        let bytes: Vec&lt;u8&gt; = result.into_bytes();
+        //reply::with_header(bytes, "content-type", content_type)
+        headers.insert(
+            HeaderName::from_static("content-type"),
+            HeaderValue::from_static("application/json"),
+        );
+        (headers, bytes)
+    }
+}
+
+async fn act(
+    Form(qs): Form&lt;HashMap&lt;String, String&gt;&gt;,
+    Extension(context): Extension&lt;Arc&lt;AppContext&gt;&gt;,
+) -&gt; Json&lt;Value&gt; {
+    let empty = String::from("");
+    let dbs = context.dbs.clone();
+    let act = qs.get("act").unwrap_or(&amp;empty).clone();
+    let params = base16::base16_decode(qs.get("params").unwrap_or(&amp;empty)).unwrap();
+    let params: Value = serde_json::from_str(&amp;params).unwrap_or(Value::Null);
+    info!("act={} params={}", act, params);
+    //let content_type = "application/json";
+    let sql: String;
+    let p1: JsonValue;
+    let p2: JsonValue;
+    let p3: JsonValue;
+    let p4: JsonValue;
+    let p5: JsonValue;
+    let sql_params: Vec&lt;&amp;dyn ToSql&gt;;
+    let pof = |id| JsonValue::of(&amp;params[id]);
+    if act == "exam" {
+        sql = r"EXEC dbo.TM_Exam @P1,@P2,@P3,@P4".into();
+        p1 = pof("ids");
+        p2 = pof("fhr");
+        p3 = pof("fhrId");
+        p4 = pof("isUndo");
+        sql_params = vec![&amp;p1, &amp;p2, &amp;p3, &amp;p4];
+    } else if act == "changepayee" {
+        sql = "EXEC dbo.TM_ChangePayee @P1,@P2,@P3,@P4,@P5".into();
+        p1 = pof("bankName");
+        p2 = pof("bankAcct");
+        p3 = pof("unitCode");
+        p4 = pof("updateDate");
+        p5 = pof("mark");
+        sql_params = vec![&amp;p1, &amp;p2, &amp;p3, &amp;p4, &amp;p5];
+    } else if act == "execsql" || act == "@execsql" {
+        sql = params["sql"].string("");
+        sql_params = Vec::new();
+    } else {
+        sql = "".into();
+        sql_params = Vec::new();
+    }
+    let result = if !sql.is_empty() {
+        let row_is_obj = act.starts_with('@');
+        let result = database::query(dbs, &amp;sql, &amp;sql_params, row_is_obj).await;
+        match result {
+            Ok(result) =&gt; {
+                json!({ "msg":"ok", "data":result})
+            }
+            Err(err) =&gt; {
+                json!({ "msg": format!("{:?}", err) })
+            }
+        }
+    } else {
+        json!({ "msg": format!("unknown act {} params:{}", act, params.to_string()) })
+    };
+    Json(result)
+}
+
+</code></pre>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust日报】2021-09-03 Bebop v2.3.0：为 Bebop 序列化添加 Rust 支持</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=99b9fdf0-4026-4753-a07f-b7355caced95">
+<div class="article-summary-box-inner">
+<span><h4>Bebop v2.3.0：为 Bebop 序列化添加 Rust 支持</h4>
+<p>Bebop 是一种基于模型的二进制序列化技术，类似于 Protocol Buffers 或 MessagePack。特别是，Bebop 试图非常适合需要比 JSON 或 MessagePack 更快、更简洁和类型安全的客户端-服务器或分布式 Web 应用程序。Matthew Conover 2021年8月30日宣布 Bebop 添加了 Rust 的支持</p>
+<ul>
+<li>https://rainway.com/blog/2021/08/30/bebop-rust/</li>
+</ul>
+<h4>将 TensorFlow 模型移植到 Rust 的开发成本</h4>
+<p>通过 CrowdStrike 的可扩展性，可以立即将 TensorFlow 模型成功转换为纯 Rust 代码，文章介绍了通过这一方法的时间和精力成本</p>
+<ul>
+<li>https://www.crowdstrike.com/blog/development-cost-of-porting-tensorflow-models-to-pure-rust/</li>
+</ul>
+<h4>Rust 中的结构更新语法</h4>
+<ul>
+<li>https://www.reddit.com/r/rust/comments/pchp8h/media_struct_update_syntax_in_rust/</li>
+</ul>
+<hr>
+<p>From 日报小组 北纬27度 侯盛鑫</p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rust.cc 论坛: 支持 rss</a></li>
+<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust 语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">bytes::ByteMut 无法写入数据</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=1ab18776-e162-4fbc-80b3-d23bb7402cf3">
+<div class="article-summary-box-inner">
+<span><p>想用 <a href="https://docs.rs/bytes/1.1.0/bytes/struct.BytesMut.html" rel="noopener noreferrer">ByteMut</a> 作缓冲区，从同步io数据源中读取数据，可是无法读取，也没报错。。。</p>
+<pre><code>fn main() -&gt; io::Result&lt;()&gt; {
+    let mut buf = BytesMut::with_capacity(10);
+
+    let mut input: Cursor&lt;Vec&lt;u8&gt;&gt; = Cursor::new({
+        (0..100).collect()
+    });
+
+    loop {
+        match input.read(&amp;mut buf)? {
+            0 =&gt; {
+                println!("[READ OVER]");
+                break;
+            }
+            n =&gt; {
+                println!("{:?}", &amp;buf);
+                println!("[READ ONCE]");
+            }
+        }
+    }
+
+    Ok(())
+}
+</code></pre>
+<p>如果只用普通的数组，是可以读取数据</p>
+<pre><code>let mut buf = [0; 10];
+</code></pre>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">非凸科技 ｜寻找行业内优秀的Rust开发工程师</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=ac57d61f-1742-423a-91db-2cd682843f93">
+<div class="article-summary-box-inner">
+<span><p>在最近出炉的 Stack Overflow 全球开发者调查报告中，约86.69%的开发人员选择Rust作为他们“最喜爱的语言”。Rust语言虽受好评，但使用群体仍是少数。Rust在系统编程领域很受欢迎，并且近年来被认为将接替C语言用于Linux内核开发，原因之一是Rust可以帮助消除与内存相关的安全漏洞。</p>
+<p>非凸科技正成为国内金融市场智能投资交易平台的引领者，潜心打造智能算法交易平台，在原有基础上全面升级到互联网新一代技术架构，结合机器学习等新兴技术，逐步完成各类交易算法的研发迭代，正持续为券商、量化私募等众多大型金融机构提供优质的算法服务。</p>
+<p>现阶段，非凸科技正在寻找行业内优秀的Rust开发工程师，薪资福利超级优厚。关键是团队有很好的Rust的开发氛围，Rust大神手把手辅导，助你从Rust新人不断升级。</p>
+<p>岗位职责：
+1.设计并开发基于RUST的高性能，低时延算法交易系统；
+2.设计并开发数据处理平台，监控运维平台；
+3.设计并开发面向客户的高可用交易工具等；
+4.设计并开发策略相关的回测平台。</p>
+<p>岗位要求：
+1.本科及以上学历（985优先）。编程基础扎实，具有良好的计算机理论基础；
+2.熟练掌握Linux操作，性能分析，具备Rust/C++/Java/Go丰富开发经验，熟悉常用的设计模式，有分布式相关经验加分；
+3.有研发高性能，低时延系统经验加分；
+4.对技术充满热情，思考深入。自我驱动，能快速学习新鲜事物。</p>
+<p>参考薪酬：Base 30K-60K+，有期权激励。
+工作地点：上海市漕河泾开发区 凯科国际大厦
+投递邮箱：recruit@non-convex.com
+联系人微信号：SweeneyTodd333333</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Poem-openapi开源了!</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=334551fe-a8a9-4561-aa63-11987b10e81f">
+<div class="article-summary-box-inner">
+<span><p>尽管有不少朋友已经知道我这几天在做什么，但当Poem-openapi的第一版准时完成，并且完全按照刚开始的想法正常工作时，我还是按捺不住内心的激动希望跟大家分享。</p>
+<p>注意：Poem-openapi只支持Poem，所以你如果希望使用它，Poem是必要的依赖，而且我不会考虑支持其它的web框架。😎</p>
+<p>据我所知这是Rust语言里第一个用过程宏来实现OpenAPI规范的库，它的工作方式和<a href="https://crates.io/crates/async-graphql" rel="noopener noreferrer">Async-graphql</a>非常的像，以类型安全的代码来编写符合OpenAPI规范的API并自动生成文档。过程宏的使用完全IDE友好，你绝对不会直接用到过程宏生成的任何代码，避免了IDE满屏幕的红线，或者没法自动完成（我很看重这个，脱离IDE的自动完成我不会写代码）。😂</p>
+<p>下面我以一个小例子来介绍它是如何使用的：</p>
+<p>这是一个简单的用户管理API实现（别管它有没有什么实际价值，也别告诉我oai这个名字很奇怪，这是官方起的简称，不怪我），我们只看它如何使用。😁</p>
+<p>每一个接口都需要定义Request和Response类型，除非它不接收或者返回任何内容。</p>
+<p><code>create_user</code>接口创建一个用户，由于它的请求对象类型是Json，所以它只支持<code>content-type</code>为<code>application/json</code>的请求。返回的<code>CreateUserResponse</code>定义了不同状态码对应的响应类型。</p>
+<p>所有<code>API</code>宏描述的操作都会自动生成OpenAPI 3.0规范的文档，你可以clone仓库 https://github.com/poem-web/poem-openapi ，然后执行<code>cargo run --example users</code>，浏览器打开<code>http://localhost:3000</code>，就能看到一个非常奢华的Swagger UI（尽管我觉得它离GraphQL Playground的易用度还差得远）。😎</p>
+<pre><code>use std::collections::HashMap;
+
+use poem_openapi::{payload::Json, types::Password, OpenAPI, Response, Schema, API};
+use tokio::sync::Mutex;
+
+/// Create user schema
+#[derive(Debug, Schema, Clone, Eq, PartialEq)]
+struct User {
+    /// Id
+    id: String,
+    /// Name
+    name: String,
+    /// Password
+    password: Password,
+}
+
+/// Update user schema
+#[derive(Debug, Schema, Clone, Eq, PartialEq)]
+struct UpdateUser {
+    /// Name
+    name: Option&lt;String&gt;,
+    /// Password
+    password: Option&lt;Password&gt;,
+}
+
+#[derive(Response)]
+enum CreateUserResponse {
+    /// Returns when the user is successfully created.
+    #[oai(status = 200)]
+    Ok,
+    /// Returns when the user already exists.
+    #[oai(status = 409)]
+    UserAlreadyExists,
+}
+
+#[derive(Response)]
+enum FindUserResponse {
+    /// Return the specified user.
+    #[oai(status = 200)]
+    Ok(Json&lt;User&gt;),
+    /// Return when the specified user is not found.
+    #[oai(status = 404)]
+    NotFound,
+}
+
+#[derive(Response)]
+enum DeleteUserResponse {
+    /// Returns when the user is successfully deleted.
+    #[oai(status = 200)]
+    Ok,
+    /// Return when the specified user is not found.
+    #[oai(status = 404)]
+    NotFound,
+}
+
+#[derive(Response)]
+enum UpdateUserResponse {
+    /// Returns when the user is successfully updated.
+    #[oai(status = 200)]
+    Ok,
+    /// Return when the specified user is not found.
+    #[oai(status = 404)]
+    NotFound,
+}
+
+#[derive(Default)]
+struct Api {
+    users: Mutex&lt;HashMap&lt;String, User&gt;&gt;,
+}
+
+#[API]
+impl Api {
+    /// Create a new user
+    #[oai(path = "/users", method = "post", tag = "user")]
+    async fn create_user(&amp;self, user: Json&lt;User&gt;) -&gt; CreateUserResponse {
+        let mut users = self.users.lock().await;
+        if users.contains_key(&amp;user.0.id) {
+            return CreateUserResponse::UserAlreadyExists;
+        }
+        users.insert(user.0.id.clone(), user.0);
+        CreateUserResponse::Ok
+    }
+
+    /// Find user by id
+    #[oai(path = "/users/:user_id", method = "get", tag = "user")]
+    async fn find_user(
+        &amp;self,
+        #[oai(name = "user_id", in = "path")] user_id: String,
+    ) -&gt; FindUserResponse {
+        let users = self.users.lock().await;
+        match users.get(&amp;user_id) {
+            Some(user) =&gt; FindUserResponse::Ok(Json(user.clone())),
+            None =&gt; FindUserResponse::NotFound,
+        }
+    }
+
+    /// Delete user by id
+    #[oai(path = "/users/:user_id", method = "delete", tag = "user")]
+    async fn delete_user(
+        &amp;self,
+        #[oai(name = "user_id", in = "path")] user_id: String,
+    ) -&gt; DeleteUserResponse {
+        let mut users = self.users.lock().await;
+        match users.remove(&amp;user_id) {
+            Some(_) =&gt; DeleteUserResponse::Ok,
+            None =&gt; DeleteUserResponse::NotFound,
+        }
+    }
+
+    /// Update user by id
+    #[oai(path = "/users/:user_id", method = "put", tag = "user")]
+    async fn put_user(
+        &amp;self,
+        #[oai(name = "user_id", in = "path")] user_id: String,
+        update: Json&lt;UpdateUser&gt;,
+    ) -&gt; UpdateUserResponse {
+        let mut users = self.users.lock().await;
+        match users.get_mut(&amp;user_id) {
+            Some(user) =&gt; {
+                if let Some(name) = update.0.name {
+                    user.name = name;
+                }
+                if let Some(password) = update.0.password {
+                    user.password = password;
+                }
+                UpdateUserResponse::Ok
+            }
+            None =&gt; UpdateUserResponse::NotFound,
+        }
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    poem::Server::bind("127.0.0.1:3000")
+        .await
+        .unwrap()
+        .run(
+            OpenAPI::new(Api::default())
+                .title("poem-openapi")
+                .version("0.1.0")
+                .server_with_description("http://localhost:3000", "localhost")
+                .tag_with_description("user", "Operations about user")
+                .ui_path("/"),
+        )
+        .await
+        .unwrap();
+}
+
+</code></pre>
+<p>要完全支持Open API规范中定义的特性还有不少功能要做，比如JsonSchema的所有校验器，认证，权限等等，如果你觉得这个库有用，并且希望能够为它贡献自己的力量，我非常欢迎！😁</p>
+</span>
+</div>
+</a>
+</details>
+</article>
 <article>
 <details class="article-expander">
 <summary class="article-expander__title">【Rust日报】2021-09-02 pixels 0.6.0 发布</summary>
@@ -94,1063 +899,6 @@ https://github.com/leptonyu/cfg-rs</p>
 <div class="article-summary-box-inner">
 <span><p>https://github.com/wandercn/go-ide-vim.conf.git
 有兴趣vim流的可以试试，我自己一直用着还可以。</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【Rust日报】2021-09-01 一个深度学习研究员学习Rust的经验</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=90891a92-f5d6-42ea-b8fc-f46da1ac034c">
-<div class="article-summary-box-inner">
-<span><h3>一个深度学习研究员学习Rust的经验</h3>
-<p>作为深度学习研究员，处于深度学习领域的最前沿，自然用 py 和现成的框架是不够的。而 Rust 是一个非常好的替代 c++ 的底层算法实现选择。</p>
-<p>https://www.reddit.com/r/rust/comments/pft9n9/i_wanted_to_share_my_experience_of_rust_as_a_deep/</p>
-<h3>Rust 比现代 C++ 的优势在哪些地方</h3>
-<p>这里有非常详实的讨论：</p>
-<p>https://www.reddit.com/r/rust/comments/2mwpie/what_are_the_advantages_of_rust_over_modern_c/</p>
-<h3>Novus - 一个rust实现的 Windows 包管理器</h3>
-<p>性能比 Chocolatey 高 3~10倍。</p>
-<p>https://github.com/novus-package-manager/novus</p>
-<h3>一个 Gopher 的 Rust 冒险</h3>
-<p>作者记录了自己学习 Rust 的心路历程，很详细，文笔不错。</p>
-<p>https://thespblog.net/a-gophers-foray-into-rust/</p>
-<h3>组合使用 Axum, Hyper, Tonic, Tower 开发 Web/gRPC 混合接口的 app：第一部分</h3>
-<p>代码一行行讲解的一个 tutorial。值得学习。</p>
-<p>https://www.fpcomplete.com/blog/axum-hyper-tonic-tower-part1/</p>
-<h3>关于高性能 Rust 代码的几个简单的调优方法</h3>
-<p>列举了几个简单的操作就能达到很好的效果，非常实用。</p>
-<p>https://deterministic.space/high-performance-rust.html</p>
-<h3>使用 Rust + SIMD 开发世界上最快的 tac</h3>
-<p>tac 是一个命令行工具，用于翻转一个文件的内容。被收录于 GNU core-utils。而 Rust 结合 SIMD，达到了最快的速度。</p>
-<p>https://neosmart.net/blog/2021/using-simd-acceleration-in-rust-to-create-the-worlds-fastest-tac/</p>
-<p>--</p>
-<p>From 日报小组 Mike</p>
-<p>社区学习交流平台订阅：</p>
-<ul>
-<li>Rustcc论坛: 支持rss</li>
-<li>微信公众号：Rust语言中文社区</li>
-</ul>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【译】Rust 常见的问题</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=4a6054b8-f846-4ef3-8c7b-6c60664ab2b0">
-<div class="article-summary-box-inner">
-<span><p>原文：https://github.com/dtolnay/rust-faq</p>
-<p>本文档的存在是为了回答有关 Rust 编程语言的常见问题。它不是一个完整的语言指南，也不是一个教授该语言的工具。它只是一个参考，用来回答 Rust 社区中人们经常遇到的问题，并澄清 Rust 的一些设计决定背后的原因。</p>
-<p>如果你觉得有一些常见的或重要的问题在这里没有得到解答，请在 GitHub 上针对<a href="https://github.com/dtolnay/rust-faq" rel="noopener noreferrer">这个 repo</a>提一个 issue!</p>
-<p><em>这些内容大部分以前都在 rust-lang/rust 库中，并且在网站上有一个专门的 FAQ 页面。但是在 2018 年的网站重新设计中，它被删除了。我在这里把它恢复了，因为这些问题中的许多问题仍然被频繁询问。</em></p>
-<h1>目录</h1>
-<ul>
-<li><a href="#The-Rust-Project" rel="noopener noreferrer">The Rust Project</a></li>
-<li><a href="#%E6%80%A7%E8%83%BD" rel="noopener noreferrer">性能</a></li>
-<li><a href="#%E8%AF%AD%E6%B3%95" rel="noopener noreferrer">语法</a></li>
-<li><a href="#%E6%95%B0%E5%AD%97" rel="noopener noreferrer">数字</a></li>
-<li><a href="#%E5%AD%97%E7%AC%A6%E4%B8%B2" rel="noopener noreferrer">字符串</a></li>
-<li><a href="#%E9%9B%86%E5%90%88" rel="noopener noreferrer">集合</a></li>
-<li><a href="#%E6%80%9D%E6%99%AE%E8%84%BE%E6%B0%94am" rel="noopener noreferrer">所有权</a></li>
-<li><a href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F" rel="noopener noreferrer">生命周期</a></li>
-<li><a href="#%E6%B3%9B%E5%9E%8B" rel="noopener noreferrer">泛型</a></li>
-<li><a href="#%E8%BE%93%E5%85%A5-%E8%BE%93%E5%87%BA" rel="noopener noreferrer">输入/输出</a></li>
-<li><a href="#%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86" rel="noopener noreferrer">错误处理</a></li>
-<li><a href="#%E5%B9%B6%E5%8F%91" rel="noopener noreferrer">并发</a></li>
-<li><a href="#%E5%AE%8F" rel="noopener noreferrer">宏</a></li>
-<li><a href="#Debugging-and-Tooling" rel="noopener noreferrer">Debugging and Tooling</a></li>
-<li><a href="#Low-Level" rel="noopener noreferrer">Low-Level</a></li>
-<li><a href="#%E8%B7%A8%E5%B9%B3%E5%8F%B0" rel="noopener noreferrer">跨平台</a></li>
-<li><a href="#mod-%E5%92%8C-crate" rel="noopener noreferrer">mod 和 crate</a></li>
-<li><a href="#%E5%BA%93" rel="noopener noreferrer">库</a></li>
-<li><a href="#%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F" rel="noopener noreferrer">设计模式</a></li>
-<li><a href="#%E5%85%B6%E4%BB%96%E8%AF%AD%E8%A8%80" rel="noopener noreferrer">其他语言</a></li>
-<li><a href="#Documentation" rel="noopener noreferrer">Documentation</a></li>
-</ul>
-<h1>The Rust Project</h1>
-<h2>这个项目的目标是什么？</h2>
-<p>设计并实现一种安全的、并发的、实用的系统级语言。</p>
-<p>Rust 之所以存在，是因为在这个抽象和效率水平上的其他语言并不令人满意。特别是：</p>
-<ol>
-<li>对安全性的关注太少。</li>
-<li>他们对并发性的支持很差。</li>
-<li>缺乏实际的承受力。</li>
-<li>它们对资源的控制有限。</li>
-</ol>
-<p>Rust 作为一种替代方案存在，它既能提供高效的代码，又能提供舒适的抽象水平，同时在上述四点上都有改进。</p>
-<h2>这个项目是由 Mozilla 控制的吗？</h2>
-<p>Rust 在 2006 年作为 Graydon Hoare 的兼职项目开始，并保持了 3 年多。2009 年，当该语言成熟到可以运行基本测试并展示其核心概念时，Mozilla 参与其中。虽然它仍然由 Mozilla 赞助，但 Rust 是由来自世界各地不同地方的爱好者组成的一个多样化社区开发的。<a href="https://www.rust-lang.org/governance" rel="noopener noreferrer">Rust 团队</a>由 Mozilla 和非 Mozilla 成员组成，GitHub 上的<code>rust</code>到目前为止已经有超过<a href="https://github.com/rust-lang/rust/" rel="noopener noreferrer">2300 个独特的贡献者</a>。</p>
-<p>就<a href="https://github.com/rust-lang/rfcs/blob/master/text/1068-rust-governance.md" rel="noopener noreferrer">项目管理</a>而言，Rust 由一个核心团队管理，为项目设定愿景和优先级。从全球角度来指导它。还有一些子团队来指导和促进特定兴趣领域的发展，包括核心语言、编译器、Rust 库、Rust 工具和 Rust 官方社区的管理。这些领域的设计都是通过[RFC]（https://github.com/rust-lang/rfcs）来推进的。对于不需要 RFC 的变化，通过<a href="https://github.com/rust-lang/rust" rel="noopener noreferrer"><code>rustc</code>仓库</a>的 PR 来决定。</p>
-<h2>Rust的一些非目标是什么？</h2>
-<ol>
-<li>我们不采用任何特别前沿的技术。旧的、成熟的技术会更好。</li>
-<li>我们并不把表现力、极简主义或优雅性置于其他目标之上。这些都是可取的，但是从属的目标。</li>
-<li>我们不打算涵盖 C++ 或任何其他语言的完整功能集。Rust 应该提供大多数情况下的功能。</li>
-<li>我们不打算做到 100% 的静态，100% 的安全，100% 的反射，或在任何其他意义上过于教条化。存在权衡。</li>
-<li>我们不要求 Rust 在“所有可能的平台”上运行。它最终必须在广泛使用的硬件和软件平台上没有不必要的妥协地运行。</li>
-</ol>
-<h2>Mozilla 在哪些项目中使用 Rust？</h2>
-<p>主要的项目是<a href="https://github.com/servo/servo" rel="noopener noreferrer">Servo</a>，这是 Mozilla 正在进行的实验性浏览器引擎。他们也在努力将<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1135640" rel="noopener noreferrer">Rust 组件</a>整合到 Firefox 中。</p>
-<h2>有哪些大型 Rust 项目的例子？</h2>
-<p>现在最大的两个 Rust 开源项目是<a href="https://github.com/servo/servo" rel="noopener noreferrer">Servo</a>和<a href="https://github.com/rust-lang/rust" rel="noopener noreferrer">Rust 编译器</a>本身。</p>
-<h2>还有谁在使用 Rust？</h2>
-<p><a href="https://www.rust-lang.org/production/users" rel="noopener noreferrer">越来越多的组织！</a></p>
-<h2>我怎样才能轻松地尝试 Rust？</h2>
-<p>尝试Rust的最简单方法是通过<a href="https://play.rust-lang.org/" rel="noopener noreferrer">playpen</a>，这是一个用于编写和运行 Rust 代码的在线应用程序。如果你想在你的系统上尝试 Rust，<a href="https://www.rust-lang.org/tools/install" rel="noopener noreferrer">安装它</a>并通过书中的<a href="https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html" rel="noopener noreferrer">猜谜游戏</a>教程。</p>
-<h2>我怎样才能得到 Rust 问题的帮助？</h2>
-<p>有几种方法。你可以。</p>
-<ul>
-<li>在<a href="https://users.rust-lang.org/" rel="noopener noreferrer">users.rust-lang.org</a>，即 Rust 官方用户论坛上发帖</li>
-<li>在官方的<a href="https://chat.mibbit.com/?server=irc.mozilla.org&amp;channel=%23rust" rel="noopener noreferrer">Rust IRC channel</a> (#rust on irc.mozilla.org)中提问。</li>
-<li>在<a href="https://stackoverflow.com/questions/tagged/rust" rel="noopener noreferrer">Stack Overflow</a>上用“rust”标签提问。</li>
-<li>在<a href="https://www.reddit.com/r/rust" rel="noopener noreferrer">/r/rust</a>，非官方的 Rust 子论坛上发帖</li>
-</ul>
-<h2>为什么 Rust 随着时间的推移发生了如此大的变化？</h2>
-<p>Rust 最初的目标是创造一种安全但可用的系统编程语言。在追求这一目标的过程中，它探索了很多想法，其中一些被保留了下来（生命周期，Trait），而另一些则被抛弃了（类型状态系统，绿色线程）。另外，在 1.0 之前，很多标准库都被重写了，因为早期的设计被更新以最好地使用 Rust 的特性，并提供高质量的、一致的跨平台 API。现在 Rust 已经达到了 1.0，该语言被保证是“稳定的”；虽然它可能继续发展，但在当前 Rust 上运行的代码应该继续在未来的版本上运行。</p>
-<h2>Rust语言的版本管理是如何进行的？</h2>
-<p>Rust 的语言版本管理遵循<a href="http://semver.org/" rel="noopener noreferrer">SemVer</a>，只有当需要进行编译器错误的修复、安全漏洞的修补或者需要更多注释以改变类型推断和分发的时候，才允许在小版本中对稳定的 API 进行向后不兼容的修改。更详细的小版本修改指南可参考<a href="https://github.com/rust-lang/rfcs/blob/master/text/1122-language-semver.md" rel="noopener noreferrer">语言</a>和<a href="https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md" rel="noopener noreferrer">标准库</a>的 RFC。</p>
-<p>Rust 有三个“发布 channel”：稳定版、测试版和 nightly 版。稳定版和测试版每六周更新一次，当前的 nightly 版成为新的测试版，而当前的 nightly 版成为新的稳定版。标记为不稳定的语言和标准库功能或隐藏在特性开关后面的功能只能在 nightly 中使用。新功能以不稳定的形式出现，一旦被核心团队和相关的子团队批准，就会被“解禁”。这种方法允许实验，同时为稳定频道提供强大的向后兼容性保证。</p>
-<p>更多的细节，请阅读 Rust 的博文<a href="http://blog.rust-lang.org/2014/10/30/Stability.html" rel="noopener noreferrer">“Stability as a Deliverable”</a>。</p>
-<h2>我可以在测试版或稳定版频道上使用不稳定的功能吗？</h2>
-<p>不，你不能。Rust 努力为测试版和稳定版频道上提供的功能的稳定性提供强有力的保证。当某项功能不稳定时，这意味着我们还不能为它提供这些保证，并且不希望人们依赖它保持不变。这使我们有机会在 nightly 上尝试改变，同时仍然为寻求稳定的人保持强有力的保证。</p>
-<p>事情一直在变稳定，测试版和稳定版频道每六周更新一次，其他时候偶尔也会接受测试版的修复。如果你在等待一个功能，而不使用 nightly，你可以通过检查问题追踪器上的<a href="https://github.com/rust-lang/rust/issues?q=is%3Aissue+is%3Aopen+tracking+label%3AB-unstable" rel="noopener noreferrer"><code>B-unstable</code></a>标签来定位其追踪问题。</p>
-<h2>什么是“特性开关”?</h2>
-<p>“特性开关”是 Rust 用来稳定编译器、语言和标准库的特性的机制。一个被“开关控制”的特性只有在 nightly 上才能访问，而且只有在通过<code>#[feature]</code>属性或<code>-Z unstable-options</code>命令行参数明确启用后才能访问。当一个特性被稳定化后，它就可以在稳定发布通道上使用，并且不需要明确启用，这时候这个特性就被认为是稳定的。特性开关允许开发者在开发中的实验性功能在它们在稳定语言中可用之前进行测试。</p>
-<h2>为什么要采用 MIT/ASL2 双许可证？</h2>
-<p>Apache 许可证包括对专利侵犯的重要保护，但它与 GPL 第 2 版不兼容。为了避免 Rust 与 GPL2 的使用出现问题，Rust 采用了 MIT 许可。</p>
-<h2>为什么是 BSD 风格的许可，而不是 MPL 或三合一许可？</h2>
-<p>这一方面是由于原始开发者（Graydon）的偏好，另一方面是由于语言往往比网络浏览器等产品有更广泛的受众和更多样化的可能嵌入和最终用途。我们希望尽可能多地吸引这些潜在的贡献者。</p>
-<h1>性能</h1>
-<h2>Rust有多快？</h2>
-<p>非常快! 在许多基准测试中，Rust 已经可以与 C 和 C++ 竞争（比如<a href="https://benchmarksgame-team.pages.debian.net/benchmarksgame/fastest/rust.html" rel="noopener noreferrer">基准游戏</a>和<a href="https://github.com/kostya/benchmarks" rel="noopener noreferrer">其他</a>）。</p>
-<p>像 C++ 一样，Rust 把<a href="http://blog.rust-lang.org/2015/05/11/traits.html" rel="noopener noreferrer">零成本抽象</a>作为它的核心原则之一：Rust 的抽象没有一个施加全局性能惩罚，也没有传统意义上的任何运行时系统的开销。</p>
-<p>鉴于 Rust 是建立在 LLVM 之上的，并努力从 LLVM 的角度类似于 Clang，任何 LLVM 的性能改进也有助于 Rust。从长远来看，Rust 的类型系统中更丰富的信息也应该能够实现 C/C++ 代码难以实现或无法实现的优化。</p>
-<h2>Rust 有垃圾收集吗？</h2>
-<p>不，Rust 的关键创新之一是在<em>不需要</em>垃圾收集的同时保证内存安全（无 segfault）。</p>
-<p>通过避免 GC，Rust 可以提供许多好处：可预测的资源清理，较低的内存管理开销，以及基本上没有运行时系统。所有这些特征都使 Rust 变得精干，并且容易嵌入到任意的上下文中，并使其更容易<a href="http://calculist.org/blog/2015/12/23/neon-node-rust/" rel="noopener noreferrer">将 Rust 代码与有 GC 的语言集成</a>。</p>
-<p>Rust 通过其所有权和借用系统避免了对 GC 的需求，但同样的系统也有助于解决一系列其他问题，包括
-<a href="http://blog.skylight.io/rust-means-never-having-to-close-a-socket/" rel="noopener noreferrer">一般的资源管理</a>和<a href="http://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html" rel="noopener noreferrer">并发性</a>。</p>
-<p>当单一所有权不够用时，Rust 程序依靠标准的引用计数智能指针类型<a href="https://doc.rust-lang.org/std/rc/struct.Rc.html" rel="noopener noreferrer"><code>Rc</code></a>，以及它的线程安全对应类型<a href="https://doc.rust-lang.org/std/sync/struct.Arc.html" rel="noopener noreferrer"><code>Arc</code></a>，而不是 GC。</p>
-<p>然而，我们正在研究<em>可选的</em>垃圾收集作为未来的扩展。我们的目标是使其能够顺利地与垃圾收集的运行时，例如那些由<a href="https://spidermonkey.dev" rel="noopener noreferrer">Spidermonkey</a>和<a href="https://developers.google.com/v8/?hl=en" rel="noopener noreferrer">V8</a>的 JavaScript 引擎提供的。最后，一些人已经在没有编译器的支持情况下研究了实现<a href="https://manishearth.github.io/blog/2015/09/01/designing-a-gc-in-rust/" rel="noopener noreferrer">纯 Rust 垃圾收集器</a>。</p>
-<h2>为什么我的程序很慢？</h2>
-<p>Rust 编译器不会用优化来编译，除非被要求这样做，<a href="https://users.rust-lang.org/t/why-does-cargo-build-not-optimise-by-default/4150/3" rel="noopener noreferrer">因为优化会降低编译速度，而且在开发过程中通常是不可取的</a>。</p>
-<p>如果你用<code>cargo</code>编译，请使用<code>--release</code>标志。如果你直接用<code>rustc</code>编译，使用<code>-O</code>标志。这两个标志中的任何一个都会打开优化功能。</p>
-<h2>Rust的编译似乎很慢。这是为什么呢？</h2>
-<p>代码翻译和优化。Rust 提供了高水平的抽象，可以编译成高效的机器代码，这些翻译需要时间来运行，特别是在优化时。</p>
-<p>但是 Rust 的编译时间并不像看起来那么糟糕，而且有理由相信它会有所改善。当比较 C++ 和 Rust 之间类似规模的项目时，一般认为整个项目的编译时间是相当的。人们普遍认为 Rust 的编译速度很慢，这在很大程度上是由于 C++ 和 Rust 的<em>编译模型</em>的不同。C++ 的编译单元是文件，而 Rust 的编译单元是由许多文件组成的 crate。因此，在开发过程中，修改一个 C++ 文件可能会导致比 Rust 少得多的重新编译。目前正在努力重构编译器以引入<a href="https://github.com/rust-lang/rfcs/blob/master/text/1298-incremental-compilation.md" rel="noopener noreferrer">增量编译</a>，这将为 Rust 提供 C++ 模型的编译时间优势。</p>
-<p>除了编译模型之外，Rust 的语言设计和编译器实现还有其他几个方面会影响编译时的性能。</p>
-<p>首先，Rust 有一个适度复杂的类型系统，必须花费不可忽视的编译时间来执行约束，使 Rust 在运行时安全。</p>
-<p>其次，Rust 编译器有长期的技术债务，特别是产生了质量很差的 LLVM IR，LLVM 必须花时间“修复”。在 Rust 编译器中加入一个新的内部表示法，称为<a href="https://github.com/rust-lang/rfcs/blob/master/text/1211-mir.md" rel="noopener noreferrer">MIR</a>，有可能进行更多的优化，提高生成的 LLVM IR 的质量，但这项工作还没有发生过。</p>
-<p>第三，Rust 使用 LLVM 来生成代码是一把双刃剑：虽然它使 Rust 拥有世界一流的运行时性能，但 LLVM 是一个大型框架，不注重编译时的性能，特别是在处理质量差的输入时。</p>
-<p>最后，虽然 Rust 的首选策略是单态泛型（类似于 C++），但它要求生成的代码比其他翻译策略多得多。Rust 的程序员可以使用特征对象，通过使用动态调度来换取这种代码的膨胀。</p>
-<h2>为什么 Rust 的<code>HashMap</code>很慢？</h2>
-<p>默认情况下，Rust 的<a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html" rel="noopener noreferrer"><code>HashMap</code></a>使用 <a href="https://en.wikipedia.org/wiki/SipHash" rel="noopener noreferrer">SipHash</a> 散列算法，该算法旨在防止<a href="http://programmingisterrible.com/post/40620375793/hash-table-denial-of-service-attacks-revisited" rel="noopener noreferrer">散列表碰撞攻击</a>，同时提供<a href="https://www.reddit.com/r/rust/comments/3hw9zf/rust_hasher_comparisons/cub4oh6" rel="noopener noreferrer">各种工作负载下的合理性能</a>。</p>
-<p>虽然 SipHash <a href="http://cglab.ca/%7Eabeinges/blah/hash-rs/" rel="noopener noreferrer">在许多情况下表现出有竞争力的性能</a>，但它比其他散列算法明显慢的一种情况是在短键，如整数。这就是为什么 Rust 程序员经常观察到<a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html" rel="noopener noreferrer"><code>HashMap</code></a>的性能缓慢。在这种情况下，经常推荐使用 <a href="https://crates.io/crates/fnv" rel="noopener noreferrer">FNV hasher</a>，但要注意它不具备与 SipHash 一样的抗碰撞特性。</p>
-<h2>为什么没有集成的基准测试基础设施?</h2>
-<p>有，但它只在 nightly 上可用。我们最终计划建立一个可插拔的系统来进行综合基准测试，但与此同时，目前的系统<a href="https://github.com/rust-lang/rust/issues/29553" rel="noopener noreferrer">被认为是不稳定的</a>。</p>
-<h2>Rust 是否做了尾调用优化？</h2>
-<p>一般来说，不会。在<a href="http://llvm.org/docs/CodeGenerator.html#sibling-call-optimization" rel="noopener noreferrer">有限的情况下</a>可能会进行尾部调用优化，但<a href="https://mail.mozilla.org/pipermail/rust-dev/2013-April/003557.html" rel="noopener noreferrer">不保证</a>。由于这个功能一直是人们所希望的，Rust 保留了一个关键字（<code>become</code>），尽管目前还不清楚它在技术上是否可行，也不清楚它是否会被实现。曾经有一个<a href="https://github.com/rust-lang/rfcs/pull/81" rel="noopener noreferrer">拟议的扩展</a>，允许在某些情况下消除尾随调用，但目前被推迟了。</p>
-<h2>Rust 有 runtime 吗？</h2>
-<p>不是 Java 等语言所使用的典型意义上的运行时，但是 Rust 标准库的一部分可以被认为是“运行时”，它提供了一个堆、回溯、解开和堆栈守护。有一个<a href="https://github.com/rust-lang/rust/blob/master/library/std/src/rt.rs" rel="noopener noreferrer">少量的初始化代码</a>，在用户的<code>main</code>函数之前运行。Rust 标准库还链接了 C 标准库，它也做了类似的<a href="http://www.embecosm.com/appnotes/ean9/html/ch05s02.html" rel="noopener noreferrer">运行时初始化</a>。Rust 代码可以在没有标准库的情况下进行编译，在这种情况下，运行时与 C 语言大致相当。</p>
-<h1>语法</h1>
-<h2>为什么要用大括号? 为什么 Rust 的语法不能像 Haskell 或 Python 那样？</h2>
-<p>使用大括号来表示块是各种编程语言中常见的设计选择，而 Rust 的一致性对于已经熟悉这种风格的人来说是很有用的。</p>
-<p>大括号还可以为程序员提供更灵活的语法，并在编译器中提供更简单的解析器。</p>
-<h2>我可以在<code>if</code>条件上不加小括号，那么为什么我必须在单行块周围加上大括号？为什么不允许使用 C 语言的风格?</h2>
-<p>C 语言要求“if”语句的条件必须有小括号，但大括号是可选的，而 Rust 对其“if”表达式做出了相反的选择。这使得条件语句与语句主体明确分开，并避免了可选大括号的危害，这可能导致在重构过程中出现容易被忽略的错误，比如苹果的 <a href="https://gotofail.com/" rel="noopener noreferrer">goto fail</a> 错误。</p>
-<h2>为什么没有字典的字面语法？</h2>
-<p>Rust 的整体设计倾向于限制<em>语言</em>的大小，同时启用强大的<em>库</em>。虽然 Rust 确实为数组和字符串字面提供了初始化语法，但这是语言中唯一的集合类型。其他库定义的类型，包括无处不在的<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>Vec</code></a>集合类型，都使用宏进行初始化，如<a href="https://doc.rust-lang.org/std/macro.vec!.html" rel="noopener noreferrer"><code>vec!</code></a>宏。</p>
-<p>这种使用 Rust 的宏设施来初始化集合的设计选择在未来可能会被通用地扩展到其他集合，不仅可以简单地初始化<a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html" rel="noopener noreferrer"><code>HashMap</code></a>和<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>Vec</code></a>，还可以初始化其他集合类型，如<a href="https://doc.rust-lang.org/std/collections/struct.BTreeMap.html" rel="noopener noreferrer"><code>BTreeMap</code></a>。同时, 如果你想要一个更方便的初始化集合的语法, 你可以<a href="https://stackoverflow.com/questions/27582739/how-do-i-create-a-hashmap-literal" rel="noopener noreferrer">创建你自己的宏</a>来提供它.</p>
-<h2>我应该在什么时候使用隐式返回？</h2>
-<p>Rust 是一种非常面向表达式的语言，而“隐式返回”是这种设计的一部分。像<code>if</code>s, <code>match</code>es, 和普通块这样的结构在 Rust 中都是表达式。例如，下面的代码检查一个<a href="https://doc.rust-lang.org/std/primitive.i64.html" rel="noopener noreferrer"><code>i64</code></a>是否为奇数，通过简单地将其作为一个值来返回结果。</p>
-<pre><code>fn is_odd(x: i64) -&gt; bool {
-    if x % 2 != 0 { true } else { false }
-}
-</code></pre>
-<p>虽然它可以进一步简化，比如说。</p>
-<pre><code>fn is_odd(x: i64) -&gt; bool {
-    x % 2 != 0
-}
-</code></pre>
-<p>在每个例子中，函数的最后一行是该函数的返回值。需要注意的是，如果一个函数以分号结束，其返回类型将是<code>()</code>，表示没有返回值。隐式返回必须省略分号，才能发挥作用。</p>
-<p>显式返回只有在隐式返回不可能时才会使用，因为你要在函数主体结束前返回。虽然上面的每个函数都可以用<code>return</code>关键字和分号来写，但这样做是不必要的冗长，而且与 Rust 代码的惯例不一致。</p>
-<h2>为什么不推断出函数的签名？</h2>
-<p>在 Rust 中，声明往往带有明确的类型，而实际代码的类型是推断出来的。这种设计有几个原因：</p>
-<ul>
-<li>强制性的声明签名有助于在模块和板块层面上执行接口的稳定性。</li>
-<li>签名提高了程序员对代码的理解，消除了 IDE 在整个板块中运行推理算法来猜测一个函数的参数类型的需要；它总是显式的，就在附近。</li>
-<li>在机制上，它简化了推理算法，因为推理只需要一次看一个函数。</li>
-</ul>
-<h2>为什么<code>match</code>必须是详尽的?</h2>
-<p>为了帮助重构和清晰化。</p>
-<p>首先，如果每一种可能性都被<code>match</code>所覆盖，那么将来在<code>enum</code>中增加变体将导致编译失败，而不是在运行时出错。这种类型的编译器帮助使得 Rust 中的无畏重构成为可能。</p>
-<p>其次，穷举式检查使默认情况的语义变得明确：一般来说，非穷举式<code>match</code>的唯一安全方式是在没有匹配到任何东西时让线程恐慌。Rust 的早期版本并不要求<code>match</code>情况是详尽的，而且发现它是一个很大的 bug 来源。</p>
-<p>通过使用<code>_</code>通配符，可以很容易地忽略所有未指定的情况。</p>
-<pre><code>match val.do_something() {
-    Cat(a) =&gt; { /* ... */ }
-    _ =&gt; { /* ... */ }
-}
-</code></pre>
-<h1>Numerics</h1>
-<h2>对于浮点运算，我应该选择<code>f32</code>和<code>f64</code>中的哪一个?</h2>
-<p>选择哪种方式取决于程序的目的。</p>
-<p>如果你对浮点数的最大精度感兴趣, 那么就选择<a href="https://doc.rust-lang.org/std/primitive.f64.html" rel="noopener noreferrer"><code>f64</code></a>. 如果你对保持数值的大小或最大的效率更感兴趣，并且不关心每个数值的位数较少所带来的误差，那么<a href="https://doc.rust-lang.org/std/primitive.f32.html" rel="noopener noreferrer"><code>f32</code></a>更好。对<a href="https://doc.rust-lang.org/std/primitive.f32.html" rel="noopener noreferrer"><code>f32</code></a>的操作通常更快，即使是在 64 位硬件上。作为一个常见的例子，图形编程通常使用<a href="https://doc.rust-lang.org/std/primitive.f32.html" rel="noopener noreferrer"><code>f32</code></a>，因为它需要高性能，而 32 位浮点数足以代表屏幕上的像素。</p>
-<p>如果有疑问，可以选择<a href="https://doc.rust-lang.org/std/primitive.f64.html" rel="noopener noreferrer"><code>f64</code></a>以获得更大的精度。</p>
-<h2>为什么我不能比较浮点数或用它们作为<code>HashMap</code>或<code>BTreeMap</code>的键?</h2>
-<p>浮点数可以用<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, 和<code>&gt;=</code>运算符，以及<code>partial_cmp()</code>函数进行比较。<code>==</code>和<code>！=</code>是<a href="https://doc.rust-lang.org/std/cmp/trait.PartialEq.html" rel="noopener noreferrer"><code>PartialEq</code></a>特性的一部分，而<code>&lt;</code>、<code>&lt;=</code>、<code>&gt;</code>、<code>&gt;=</code>和<code>partial_cmp()</code>是<a href="https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html" rel="noopener noreferrer"><code>PartialOrd</code></a> 特性的一部分。</p>
-<p>浮点数不能用<code>cmp()</code>函数进行比较，它是<a href="https://doc.rust-lang.org/std/cmp/trait.Ord.html" rel="noopener noreferrer"><code>Ord</code></a>特性的一部分，因为浮点数没有总排序。此外，浮点数没有全等关系，所以它们也没有实现<a href="https://doc.rust-lang.org/std/cmp/trait.Eq.html" rel="noopener noreferrer"><code>Eq</code></a>特性。</p>
-<p>由于浮点数<a href="https://en.wikipedia.org/wiki/NaN" rel="noopener noreferrer"><code>NaN</code></a>不小于、大于或等于任何其他浮点数或其本身，所以浮点数没有总排序或平等关系。</p>
-<p>因为浮点数没有实现<a href="https://doc.rust-lang.org/std/cmp/trait.Eq.html" rel="noopener noreferrer"><code>Eq</code></a>或<a href="https://doc.rust-lang.org/std/cmp/trait.Ord.html" rel="noopener noreferrer"><code>Ord</code></a>，所以它们不能被用于特质边界需要这些特质的类型，例如<a href="https://doc.rust-lang.org/std/collections/struct.BTreeMap.html" rel="noopener noreferrer"><code>BTreeMap</code></a>或[<code>HashMap</code>]。这一点很重要，因为这些类型<em>假设</em>它们的键提供了一个总排序或总等价关系，否则会出现故障。</p>
-<p>有一个<a href="https://crates.io/crates/ordered-float" rel="noopener noreferrer">crate</a>包装了<a href="https://doc.rust-lang.org/std/primitive.f32.html" rel="noopener noreferrer"><code>f32</code></a>和<a href="https://doc.rust-lang.org/std/primitive.f64.html" rel="noopener noreferrer"><code>f64</code></a>以提供<a href="https://doc.rust-lang.org/std/cmp/trait.Ord.html" rel="noopener noreferrer"><code>Ord</code></a>和<a href="https://doc.rust-lang.org/std/cmp/trait.Eq.html" rel="noopener noreferrer"><code>Eq</code></a>的实现，这在某些情况下可能很有用。</p>
-<h2>我如何在数字类型之间进行转换?</h2>
-<p>有两种方法：<code>as</code>关键字，它为原始类型做简单的转换，以及<a href="https://doc.rust-lang.org/std/convert/trait.Into.html" rel="noopener noreferrer"><code>Into</code></a>和<a href="https://doc.rust-lang.org/std/convert/trait.From.html" rel="noopener noreferrer"><code>From</code></a>特性，它们是为一些类型转换而实现的（你也可以为你自己的类型实现）。<a href="https://doc.rust-lang.org/std/convert/trait.Into.html" rel="noopener noreferrer"><code>Into</code></a>和<a href="https://doc.rust-lang.org/std/convert/trait.From.html" rel="noopener noreferrer"><code>From</code></a>特性只在转换无损的情况下实现，所以例如，<code>f64::from(0f32)</code>会被编译，而<code>f32::from(0f64)</code>不会。另一方面，<code>as</code>将在任何两个原始类型之间进行转换，必要时截断数值。</p>
-<h2>为什么Rust没有增量和减量运算符?</h2>
-<p>Preincrement 和 Postincrement（以及与之对应的 Decrement）虽然方便，但也相当复杂。它们需要对计算顺序的了解，并经常导致 C 和 C++ 中的微妙错误和未定义行为。和<code>x = x + 1</code>相比<code>x += 1</code>只是稍微长一点，但不明确。</p>
-<h1>字符串</h1>
-<h2>如何将一个<code>String</code>或<code>Vec&lt;T&gt;</code>转换为一个片断(<code>&amp;str</code>和<code>&amp;[T]</code>)?</h2>
-<p>通常情况下，你可以在期望有片断的地方传递一个对<code>String</code>或<code>Vec&lt;T&gt;</code>的引用。使用<a href="https://doc.rust-lang.org/book/ch15-02-deref.html" rel="noopener noreferrer">Deref coercions</a>，<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code>s</a>和<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>Vec</code>s</a>在用<code>&amp;</code>或<code>&amp;mut</code>传递引用时，将自动联合到各自的片上。</p>
-<p>在<code>&amp;str</code>和<code>&amp;[T]</code>上实现的方法可以直接访问<code>String</code>和<code>Vec&lt;T&gt;</code>。例如，<code>some_string.trim()</code>可以工作，尽管<code>trim</code>是<code>&amp;str</code>上的方法，而<code>some_string</code>是一个<code>String</code>。</p>
-<p>在某些情况下，例如通用代码，有必要进行手动转换。手动转换可以使用切片操作符来实现，像这样。<code>&amp;my_vec[...]</code>。</p>
-<h2>我如何从<code>&amp;str</code>转换到<code>String</code>或反过来？</h2>
-<p><a href="https://doc.rust-lang.org/std/string/trait.ToString.html#tymethod.to_string" rel="noopener noreferrer"><code>to_string()</code></a>方法可以将<a href="https://doc.rust-lang.org/std/primitive.str.html" rel="noopener noreferrer"><code>&amp;str</code></a>转换为<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>，当你借用一个引用时，<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>自动转换为<a href="https://doc.rust-lang.org/std/primitive.str.html" rel="noopener noreferrer"><code>&amp;str</code></a>。这两种情况在下面的例子中都有演示。</p>
-<pre><code>fn main() {
-    let s = "Jane Doe".to_string();
-    say_hello(&amp;s);
-}
-
-fn say_hello(name: &amp;str) {
-    println! ("Hello {}!", name);
-}
-</code></pre>
-<h2>两种不同的字符串类型之间有什么区别？</h2>
-<p><a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>是一个在堆上分配的 UTF-8 字节的自有缓冲区。可变的<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>可以被修改，根据需要增加其容量。<a href="https://doc.rust-lang.org/std/primitive.str.html" rel="noopener noreferrer"><code>&amp;str</code></a>是在其他地方分配的<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>的一个固定容量的“视图”，如果是从<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>中引用的片断，通常在堆上，如果是字符串字面，在静态内存中。</p>
-<p><a href="https://doc.rust-lang.org/std/primitive.str.html" rel="noopener noreferrer"><code>&amp;str</code></a>是由 Rust 语言实现的原始类型，而<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>是由标准库实现的。</p>
-<h2>我如何在一个<code>String</code>中进行 O(1) 的字符访问?</h2>
-<p>你不能。至少在你不清楚“字符”是什么意思的情况下，以及在对字符串进行预处理以找到所需字符的索引的情况下是不行的。</p>
-<p>Rust 字符串是 UTF-8 编码的。UTF-8 中的单个视觉字符不一定是一个字节，因为它在 ASCII 编码的字符串中是一个字节。每个字节被称为“代码单元”（在 UTF-16 中，代码单元是 2 个字节；在 UTF-32 中是4个字节）。“代码点”由一个或多个代码单元组成，并组合成最接近于字符的“字素群”。</p>
-<p>因此，即使你可以对 UTF-8 字符串中的字节进行索引，你也无法在恒定时间内访问第 i 个码位或字母群。然而，如果你知道所需的码位或字形群从哪个字节开始，那么你就可以在恒定时间内访问它。包括<a href="https://doc.rust-lang.org/std/primitive.str.html#method.find" rel="noopener noreferrer">str::find()</a>和 regex 匹配在内的函数都会返回字节索引，以方便这种访问。</p>
-<h2>为什么字符串默认为 UTF-8？</h2>
-<p><a href="https://doc.rust-lang.org/std/primitive.str.html" rel="noopener noreferrer"><code>str</code></a>类型是 UTF-8，因为我们在野外观察到更多的文本是用这种编码的--特别是在网络传输中，它是 endian-agnostic 的--而且我们认为最好不要让 I/O 的默认处理涉及到在每个方向重新编码代码点。</p>
-<p>这确实意味着在一个字符串中定位一个特定的 Unicode 编码点是一个 O(n) 操作，尽管如果开始的字节索引已经知道，那么它们可以在 O(1) 中被访问。一方面，这显然是不可取的；另一方面，这个问题充满了权衡，我们想指出几个重要的限定条件。</p>
-<p>扫描一个<a href="https://doc.rust-lang.org/std/primitive.str.html" rel="noopener noreferrer"><code>str</code></a>的 ASCII 范围的代码点仍然可以安全地逐个字节地进行。如果你使用<a href="https://doc.rust-lang.org/std/primitive.str.html#method.as_bytes" rel="noopener noreferrer"><code>.as_bytes()</code></a>，取出一个<a href="https://doc.rust-lang.org/std/primitive.u8.html" rel="noopener noreferrer"><code>u8</code></a>只需花费<code>O(1)</code>，并产生一个可以被转换并与 ASCII 范围的<a href="https://doc.rust-lang.org/std/primitive.char.html" rel="noopener noreferrer"><code>char</code></a>比较的值。因此，如果你（比如）在<code>\n</code>上断行，基于字节的处理方法仍然有效。UTF-8 就是这样被精心设计的。</p>
-<p>大多数“面向字符”的文本操作只有在非常有限的语言假设下才能工作，如“仅 ASCII 范围的代码点”。在 ASCII 范围之外，你往往不得不使用复杂的（非恒定时间）算法来确定语言单位（字形、单词、段落）的边界。我们建议使用一种“诚实的”具有语言意识的、经 Unicode 批准的算法。</p>
-<p><a href="https://doc.rust-lang.org/std/primitive.char.html" rel="noopener noreferrer"><code>char</code></a>类型是 UTF-32。如果你确定你需要做一个代码点的算法，写一个<code>type wstr = [char]</code>，并将一个<a href="https://doc.rust-lang.org/std/primitive.str.html" rel="noopener noreferrer"><code>str</code></a>一次性解压到其中，然后用<code>wstr</code>工作，这是非常容易的。换句话说：如果你需要使用这种编码，语言没有<code>默认解码为 UTF32</code>的事实不应该阻止你解码（或以任何其他方式重新编码）。</p>
-<p>关于为什么 UTF-8 通常比 UTF-16 或 UTF-32 更受欢迎，请阅读<a href="http://utf8everywhere.org/" rel="noopener noreferrer"> UTF-8 Everywhere 宣言</a>。</p>
-<h2>我应该使用什么字符串类型？</h2>
-<p>Rust 有四对字符串类型，每一对都有不同的用途。在每一对中，都有一个“自有”的字符串类型，和一个“分片”的字符串类型。这个组织看起来像这样。</p>
-<table>
-<thead>
-<tr>
-<th align="left"></th>
-<th align="left">"Slice" type</th>
-<th align="left">"Owned" type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left">UTF-8</td>
-<td align="left"><code>str</code></td>
-<td align="left"><code>String</code></td>
-</tr>
-<tr>
-<td align="left">OS-compatible</td>
-<td align="left"><code>OsStr</code></td>
-<td align="left"><code>OsString</code></td>
-</tr>
-<tr>
-<td align="left">C-compatible</td>
-<td align="left"><code>CStr</code></td>
-<td align="left"><code>CString</code></td>
-</tr>
-<tr>
-<td align="left">System path</td>
-<td align="left"><code>Path</code></td>
-<td align="left"><code>PathBuf</code></td>
-</tr>
-</tbody>
-</table>
-<p>Rust 的不同字符串类型有不同的用途。<code>String</code>和<code>str</code>是 UTF-8 编码的通用字符串。<code>OsString</code>和<code>OsStr</code>是根据当前平台编码的，在与操作系统交互时使用。<code>CString</code>和<code>CStr</code>相当于C 语言中的字符串，在 FFI 代码中使用。<code>PathBuf</code>和<code>Path</code>是对<code>OsString</code>和<code>OsStr</code>的方便包装，提供特定于路径操作的方法。</p>
-<h2>我怎样才能写一个既接受<code>&amp;str</code>又接受<code>String</code>的函数?</h2>
-<p>有几种选择，取决于函数的需要。</p>
-<ul>
-<li>如果函数需要一个自有的字符串，但又想接受任何类型的字符串，可以使用一个<code>Into&lt;String&gt;</code>绑定。</li>
-<li>如果函数需要一个字符串分片，但希望接受任何类型的字符串，使用<code>AsRef&lt;str&gt;</code>绑定。</li>
-<li>如果函数不关心字符串的类型，而想统一处理这两种可能性，使用<code>Cow&lt;str&gt;</code>作为输入类型。</li>
-</ul>
-<h3>使用<code>Into&lt;String&gt;</code></h3>
-<p>在这个例子中，该函数将同时接受自有字符串和字符串片，要么不做任何事情，要么在函数主体内将输入的字符串转换为自有字符串。注意，转换需要明确进行，否则不会发生。</p>
-<pre><code>fn accepts_both&lt;S: Into&lt;String&gt;&gt;(s: S) {
-    let s = s.into(); // 这将把 s 转换成一个`String`。
-    // ... 其余的函数
-}
-</code></pre>
-<h3>使用<code>AsRef&lt;str&gt;</code></h3>
-<p>在这个例子中，该函数将接受拥有的字符串和字符串片断，要么不做任何事情，要么将输入的字符串片断转换为字符串。这可以通过引用输入来自动完成，像这样。</p>
-<pre><code>fn accepts_both&lt;S: AsRef&lt;str&gt;&gt;(s: &amp;S) {
-    // ... 该函数的主体
-}
-</code></pre>
-<h3>使用<code>Cow&lt;str&gt;</code></h3>
-<p>在这个例子中，函数接收了一个<code>Cow&lt;str&gt;</code>，它不是一个通用类型，而是一个容器，根据需要包含一个自有的字符串或字符串片断。</p>
-<pre><code>fn accepts_cow(s: Cow&lt;str&gt;) {
-    // ... 该函数的主体
-}
-</code></pre>
-<h1>集合</h1>
-<h2>我可以在 Rust 中有效地实现向量和链表等数据结构吗?</h2>
-<p>如果你实现这些数据结构的原因是为了在其他程序中使用它们，那就没有必要了，因为这些数据结构的有效实现已经由标准库提供了。</p>
-<p>然而，如果<a href="book-to-many-lists" rel="noopener noreferrer">你的理由只是为了学习</a>，那么你很可能需要涉足不安全代码。虽然这些数据结构可以完全用安全的 Rust 来实现，但其性能可能会比使用不安全的代码要差。原因很简单，向量和链接列表等数据结构依赖于指针和内存操作，而这些操作在安全 Rust 中是不允许的。</p>
-<p>例如，一个双链接列表需要对每个节点有两个可变引用，但这违反了 Rust 的可变引用别名规则。你可以用<a href="https://doc.rust-lang.org/std/rc/struct.Weak.html" rel="noopener noreferrer"><code>Weak&lt;T&gt;</code></a>来解决这个问题，但是性能会比你想要的差。使用不安全的代码，你可以绕过可变引用别名规则的限制，但必须手动验证你的代码是否引入了内存安全违规。</p>
-<h2>我怎样才能在不移动/消耗集合的情况下对其进行迭代？</h2>
-<p>最简单的方法是通过使用集合的<a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html" rel="noopener noreferrer"><code>IntoIterator</code></a>实现。下面是一个关于<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>&amp;Vec</code></a>的例子。</p>
-<pre><code>let v = vec! [1,2,3,4,5];
-for item in &amp;v {
-    print! ("{} ", item);
-}
-println! ("\nLength: {}", v.len());
-</code></pre>
-<p>Rust 的<code>for</code>循环对它们要迭代的东西调用<code>into_iter()</code>（定义在<a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html" rel="noopener noreferrer"><code>IntoIterator</code></a>trait 上）。任何实现了<a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html" rel="noopener noreferrer"><code>IntoIterator</code></a>trait 的东西都可以用<code>for</code>循环进行循环。<a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html" rel="noopener noreferrer"><code>IntoIterator</code></a>是为<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>&amp;Vec</code></a>和<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>&amp;mut Vec</code></a>实现的，导致来自<code>into_iter()</code>的迭代器借用集合的内容，而不是移动/消费它们。这对其他标准集合也是如此。</p>
-<p>如果需要一个移动/消耗的迭代器，编写<code>for</code>循环时不要在迭代中使用<code>&amp;</code>或<code>&amp;mut</code>。</p>
-<p>如果你需要直接访问一个借用的迭代器，你通常可以通过调用<code>iter()</code>方法得到它。</p>
-<h2>为什么我需要在数组声明中输入数组大小?</h2>
-<p>你不一定要这样做。如果你直接声明一个数组，大小是根据元素的数量推断出来的。但是如果你声明的是一个接收固定大小的数组的函数，编译器就必须知道这个数组有多大。</p>
-<p>有一点需要注意的是，目前 Rust 并没有对不同大小的数组提供泛型。如果你想接受一个连续的可变数量的值的容器，使用<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>Vec</code></a>或 slice（取决于你是否需要所有权）。</p>
-<h1>所有权</h1>
-<h2>我怎样才能实现一个包含环的图或其他数据结构?</h2>
-<p>至少有四种选择（在<a href="https://rust-unofficial.github.io/too-many-lists/" rel="noopener noreferrer">Too Many Linked Lists</a>中详细讨论过）。</p>
-<ul>
-<li>你可以使用<a href="https://doc.rust-lang.org/std/rc/struct.Rc.html" rel="noopener noreferrer"><code>Rc</code></a>和<a href="https://doc.rust-lang.org/std/rc/struct.Weak.html" rel="noopener noreferrer"><code>Weak</code></a>实现它，以允许节点的共享所有权。尽管这种方法需要付出内存管理的代价。</li>
-<li>你可以使用“不安全”的代码实现它，使用原始指针。这将更加高效，但却绕过了 Rust 的安全保证。</li>
-<li>使用向量和这些向量的索引。有<a href="http://smallcultfollowing.com/babysteps/blog/2015/04/06/modeling-graphs-in-rust-using-vector-indices/" rel="noopener noreferrer">几个</a><a href="https://featherweightmusings.blogspot.com/2015/04/graphs-in-rust.html" rel="noopener noreferrer">可用</a>这种方法的例子和解释。</li>
-<li>用<a href="https://doc.rust-lang.org/std/cell/struct.UnsafeCell.html" rel="noopener noreferrer"><code>UnsafeCell</code></a>使用借用的引用。对于这种方法有<a href="https://github.com/nrc/r4cppp/blob/master/graphs/README.md#node-and-unsafecell" rel="noopener noreferrer">解释和代码</a>。</li>
-</ul>
-<h2>我怎样才能定义一个包含对其自身字段之一的引用的结构？</h2>
-<p>这是有可能的，但是这样做没有用。该结构会被自己永久借用，因此不能被移动。下面是一些说明这个问题的代码。</p>
-<pre><code>use std::cell::Cell;
-
-#[derive(Debug)]
-struct Unmovable&lt;'a&gt; {
-    x: u32,
-    y: Cell&lt;Option&lt;&amp;'a u32&gt;&gt;。
-}
-
-fn main() {
-    let test = Unmovable { x: 42, y: Cell::new(None) }。
-    test.y.set(Some(&amp;test.x))。
-
-    println! ("{:?}", test);
-}
-</code></pre>
-<h2>按值传递、消耗、移动和转移所有权之间有什么区别?</h2>
-<p>这些是同一事物的不同术语。在所有的情况下，这意味着值已经被转移到另一个所有者那里，并且脱离了原所有者的占有，原所有者不能再使用它。如果一个类型实现了<code>Copy</code>特性，那么原所有者的值就不会被废止，仍然可以使用。</p>
-<h2>为什么某些类型的值在传递给一个函数后可以使用，而重复使用其他类型的值会导致错误？</h2>
-<p>如果一个类型实现了<a href="https://doc.rust-lang.org/std/marker/trait.Copy.html" rel="noopener noreferrer"><code>Copy</code></a>特性，那么它在传递给函数时就会被复制。Rust 中的所有数字类型都实现了<a href="https://doc.rust-lang.org/std/marker/trait.Copy.html" rel="noopener noreferrer"><code>Copy</code></a>，但结构类型默认不实现<a href="https://doc.rust-lang.org/std/marker/trait.Copy.html" rel="noopener noreferrer"><code>Copy</code></a>，所以它们被移动。这意味着该结构不能再被用于其他地方，除非通过返回将其移回函数之外。</p>
-<h2>如何处理“use of moved value”的错误？</h2>
-<p>这个错误意味着你要使用的值已经被转移到一个新的所有者那里。首先要检查的是有关的移动是否是必要的：如果它移动到一个函数中，也许可以重写该函数以使用一个引用，而不是移动。否则，如果被移动的类型实现了<a href="https://doc.rust-lang.org/std/clone/trait.Clone.html" rel="noopener noreferrer"><code>Clone</code></a>，那么在移动前对其调用<code>clone()</code>将移动它的一个副本，留下原始的仍然可以继续使用。但是请注意，克隆一个值通常应该是最后的手段，因为克隆可能很昂贵，会导致进一步的分配。</p>
-<p>如果移动的值是你自己的自定义类型，考虑实现<a href="https://doc.rust-lang.org/std/marker/trait.Copy.html" rel="noopener noreferrer"><code>Copy</code></a>（用于隐式复制，而不是移动）或<a href="https://doc.rust-lang.org/std/clone/trait.Clone.html" rel="noopener noreferrer"><code>Clone</code></a>（显式复制）。<a href="https://doc.rust-lang.org/std/marker/trait.Copy.html" rel="noopener noreferrer"><code>Copy</code></a>最常用的实现方式是<code>#[derive(Copy, Clone)]</code>（<a href="https://doc.rust-lang.org/std/marker/trait.Copy.html" rel="noopener noreferrer"><code>Copy</code></a>需要<a href="https://doc.rust-lang.org/std/clone/trait.Clone.html" rel="noopener noreferrer"><code>Clone</code></a>），而<a href="https://doc.rust-lang.org/std/clone/trait.Clone.html" rel="noopener noreferrer"><code>Clone</code></a>则是`#[derive(Clone)]。</p>
-<p>如果这些都不可能，你可能想修改获得所有权的函数，以便在函数退出时返回数值的所有权。</p>
-<h2>在方法声明中使用<code>self</code>、<code>&amp;self</code>或<code>&amp;mut self</code>的规则是什么?</h2>
-<ul>
-<li>当一个函数需要消耗值的时候，使用<code>self</code>。</li>
-<li>当一个函数只需要一个对值的只读引用时，使用<code>&amp;self</code>。</li>
-<li>当一个函数需要在不消耗该值的情况下改变该值时，使用<code>&amp;mut self</code>。</li>
-</ul>
-<h2>我怎样才能理解借用检查器？</h2>
-<p>借用检查器在评估 Rust 代码时只应用一些规则，这些规则可以在 Rust 书的<a href="https://doc.rust-lang.org/book/ch15-02-deref.html" rel="noopener noreferrer">借用部分</a>中找到。这些规则是：</p>
-<blockquote>
-<p>首先，任何借用必须持续的范围不大于所有者的范围。第二，你可以有这两种借用中的一种或另一种，但不能同时存在：</p>
-<ul>
-<li>对一个资源的一个或多个引用（&amp;T）。</li>
-<li>一个可变的引用（&amp;mut T）。</li>
-</ul>
-</blockquote>
-<p>虽然这些规则本身很简单，但持续地遵守这些规则并不容易，特别是对于那些不习惯推理寿命和所有权的人来说。</p>
-<p>了解借用检查器的第一步是阅读它产生的错误。为了确保借用检查器在解决它所发现的问题方面提供高质量的帮助，我们做了大量的工作。当你遇到借用检查器的问题时，第一步是慢慢地、仔细地阅读所报告的错误，只有在理解了所描述的错误之后，才能接近代码。</p>
-<p>第二步是熟悉 Rust 标准库提供的所有权和可变性相关的容器类型，包括<a href="https://doc.rust-lang.org/std/cell/struct.Cell.html" rel="noopener noreferrer"><code>Cell</code></a>、<a href="https://doc.rust-lang.org/std/cell/struct.RefCell.html" rel="noopener noreferrer"><code>RefCell</code></a>和<a href="https://doc.rust-lang.org/std/borrow/enum.Cow.html" rel="noopener noreferrer"><code>Cow</code></a>。这些都是表达某些所有权和可变性情况的有用和必要的工具，并且被写成性能代价最小。</p>
-<p>理解借用检查器最重要的一个部分是实践。Rust 的强静态分析保证是严格的，与许多程序员之前的工作有很大不同。需要一些时间才能完全适应一切。</p>
-<p>如果你发现自己在借用检查器上挣扎，或者没有耐心了，请随时联系<a href="https://www.rust-lang.org/community" rel="noopener noreferrer"> Rust 社区</a>寻求帮助。</p>
-<h2>什么时候<code>Rc</code>有用？</h2>
-<p>这在<a href="https://doc.rust-lang.org/std/rc/struct.Rc.html" rel="noopener noreferrer"><code>Rc</code></a>的官方文档中有所涉及，Rust 的非原子引用计算的指针类型。简而言之，<a href="https://doc.rust-lang.org/std/rc/struct.Rc.html" rel="noopener noreferrer"><code>Rc</code></a>和它的线程安全表亲<a href="https://doc.rust-lang.org/std/sync/struct.Arc.html" rel="noopener noreferrer"><code>Arc</code></a>对于表达共享所有权是很有用的，当没有人访问相关内存时，系统会自动将其取消。</p>
-<h2>我如何从一个函数中返回一个闭包？</h2>
-<p>要从一个函数中返回一个闭包，它必须是一个“移动闭包”，也就是说，闭包是用<code>move</code>关键字声明的。正如<a href="https://doc.rust-lang.org/book/ch13-01-closures.html" rel="noopener noreferrer"> Rust 书中所解释的</a>，这使得闭包拥有自己的捕获变量的副本，独立于其父级堆栈框架。否则，返回一个闭包将是不安全的，因为它将允许访问不再有效的变量；换句话说：它将允许读取可能无效的内存。闭包还必须被包裹在一个<a href="https://doc.rust-lang.org/std/boxed/struct.Box.html" rel="noopener noreferrer"><code>Box</code></a>中，这样它就被分配在堆上。阅读更多关于这个的内容<a href="https://doc.rust-lang.org/book/ch13-01-closures.html" rel="noopener noreferrer">在书中</a>。</p>
-<h2>什么是 deref coercion，它是如何工作的？</h2>
-<p><a href="https://doc.rust-lang.org/book/ch15-02-deref.html" rel="noopener noreferrer">deref coercion</a> 是一个很方便的 coercion。自动将对指针的引用(例如, <code>&amp;Rc&lt;T&gt;</code> 或 <code>&amp;Box&lt;T&gt;</code>)转换为对其内容的引用（例如，<code>&amp;T</code>）。Deref coercion 的存在是为了使 Rust 的使用更符合人体工程学，并通过<a href="https://doc.rust-lang.org/std/ops/trait.Deref.html" rel="noopener noreferrer"><code>Deref</code></a>特性实现。</p>
-<p>Deref 的实现表明实现类型可以通过调用<code>deref</code>方法转换为目标类型，该方法接收对调用类型的不可变的引用，并返回对目标类型的引用（具有相同的生命周期）。<code>*</code>前缀操作符是<code>deref</code>方法的简写。</p>
-<p>它们被称“coercions”，因为下面的规则，这里引用了<a href="https://doc.rust-lang.org/book/ch15-02-deref.html" rel="noopener noreferrer"> Rust 书</a>。</p>
-<blockquote>
-<p>如果你有一个类型<code>U</code>，并且它实现了<code>Deref&lt;Target=T&gt;</code>，那么<code>&amp;U</code>的值将自动被强制为<code>T</code>。</p>
-</blockquote>
-<p>例如，如果你有一个<code>&amp;Rc&lt;String&gt;</code>，它将通过这个规则联合成一个<code>&amp;String</code>，然后以同样的方式联合成一个<code>&amp;str</code>。因此，如果一个函数需要一个<code>&amp;str</code>参数，你可以直接传入一个<code>&amp;Rc&lt;String&gt;</code>，所有的强制都通过<code>Deref</code>特性自动处理。</p>
-<p>最常见的 Derefcoercions 种类是：</p>
-<ul>
-<li><code>&amp;Rc&lt;T&gt;</code>到<code>&amp;T</code>。</li>
-<li><code>&amp;Box&lt;T&gt;</code>到<code>&amp;T</code>。</li>
-<li><code>&amp;Arc&lt;T&gt;</code>到<code>&amp;T</code>。</li>
-<li><code>&amp;Vec&lt;T&gt;</code>改为<code>&amp;[T]</code>。</li>
-<li><code>&amp;String</code>改为<code>&amp;str</code>。</li>
-</ul>
-<h1>生命周期</h1>
-<h2>为什么是生命周期?</h2>
-<p>生命周期是 Rust 对内存安全问题的回答。它允许 Rust 确保内存安全而不需要付出垃圾回收的性能代价。它们是基于各种学术工作的。</p>
-<h2>为什么生命周期的语法是这样的？</h2>
-<p><code>'a</code>语法来自于 ML 系列编程语言，其中<code>'a</code>用于表示一个通用类型参数。对于 Rust 来说，这种语法必须是明确的、明显的，并且适合在类型声明中与 traits 和 reference 一起使用。其他的语法已经被讨论过了，但是还没有其他的语法被证明是更好的。</p>
-<h2>我如何将一个借来的东西返回到我从函数中创建的东西？</h2>
-<p>你需要确保借来的东西会超过函数的寿命。这可以通过将输出寿命与一些输入寿命绑定来实现，比如说。</p>
-<pre><code>type Pool = TypedArena&lt;Thing&gt;;
-
-// 下面的生命周期只是为了说明问题而明确写的；它可以通过后面描述的删除规则省略。
-fn create_borrowed&lt;'a&gt;(pool: &amp;'a Pool,
-                       x: i32,
-                       y: i32) -&gt; &amp;'a Thing {
-    pool.alloc(Thing { x: x, y: y })
-}
-</code></pre>
-<p>另一种方法是通过返回一个自有类型如<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>来完全消除引用。</p>
-<pre><code>fn happy_birthday(name: &amp;str, age: i64) -&gt; String {
-    format! ("Hello {}! You're {} years old!", name, age)
-}
-</code></pre>
-<p>这种方法比较简单，但往往会导致不必要的分配。</p>
-<h2>为什么有些引用有寿命，如<code>&amp;'a T</code>，而有些则没有，如<code>&amp;T</code>？</h2>
-<p>事实上, <em>所有</em>引用类型都有一个寿命, 但大多数时候你不必明确写出
-它是明确的。规则如下。</p>
-<ol>
-<li>
-<p>在一个函数体中，你永远不需要明确地写出生命周期；正确的值应该总是被推断出来的。</p>
-</li>
-<li>
-<p>在一个函数的<em>签名</em>中（例如，在其参数的类型或其返回类型中），你<em>可能</em>会需要写一个生命周期。这里的生命周期使用一个简单的默认方案，称为<a href="https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html#lifetime-elision" rel="noopener noreferrer">"lifetime elision"</a>。它由以下三条规则组成：</p>
-<ul>
-<li>在一个函数的参数中，每一个被省略的生命周期都成为一个独立的生命周期参数。</li>
-<li>如果正好只有一个输入生命周期，无论是否被省略，该生命周期都被分配给所有返回值中被省略的生命周期。</li>
-<li>如果有多个输入生命周期，但其中一个是 &amp;self 或 &amp;mut self，那么 self 的生命周期将被分配给所有被忽略的返回生命周期。</li>
-</ul>
-</li>
-<li>
-<p>最后，在“结构”或“枚举”的定义中，所有的生命周期必须被明确地声明。</p>
-</li>
-</ol>
-<p>如果这些规则导致了编译错误，Rust 编译器将提供一个错误信息，指出所造成的错误，并根据推理过程的哪一步造成的错误，提出一个潜在的解决方案。</p>
-<h2>Rust如何保证“没有空指针”和“没有悬空指针”?</h2>
-<p>构造一个<code>&amp;Foo</code>或<code>&amp;mut Foo</code>类型的值的唯一方法是指定一个引用所指向的<code>Foo</code>类型的现有值。引用在给定的代码区域内（引用的生命周期）“借用”原始值，在借用期间，被借用的值不能被移动或销毁。</p>
-<h2>我如何用“null”来表达一个值的缺失?</h2>
-<p>你可以用<a href="https://doc.rust-lang.org/std/option/enum.Option.html" rel="noopener noreferrer"><code>Option</code></a>类型来做，它可以是<code>Some(T)</code>或<code>None</code>。<code>Some(T)</code>表示其中包含一个<code>T</code>类型的值，而<code>None</code>表示没有值。</p>
-<h1>泛型</h1>
-<h2>什么是“单态化”?</h2>
-<p>单态化是将泛型函数（或结构）的每一次使用都基于调用该函数（或使用该结构）的参数类型用特定的实例进行单态化。</p>
-<p>在单态化过程中，泛型函数的一个新副本被翻译为该函数实例化的每一组独特类型。这与 C++ 使用的策略相同。它的结果是为每个调用点专门设计的快速代码，并且是静态调度的，其代价是用许多不同类型实例化的函数会导致“代码膨胀”，即多个函数实例会导致比用其他翻译策略创建的二进制文件更大。</p>
-<p>接受<a href="https://doc.rust-lang.org/book/ch17-02-trait-objects.html" rel="noopener noreferrer"> Trait Object </a>而不是类型参数的函数不进行单态化。相反，特质对象上的方法在运行时被动态地分配。</p>
-<h2>一个函数和一个没有捕获任何变量的闭包之间有什么区别？</h2>
-<p>函数和闭包在操作上是等价的，但由于它们的实现方式不同，所以有不同的运行时表示。</p>
-<p>函数是语言的内置基元，而闭包本质上是三种特征之一的语法糖。<a href="https://doc.rust-lang.org/std/ops/trait.Fn.html" rel="noopener noreferrer"><code>Fn</code></a>, <a href="https://doc.rust-lang.org/std/ops/trait.FnMut.html" rel="noopener noreferrer"><code>FnMut</code></a>, 和 <a href="https://doc.rust-lang.org/std/ops/trait.FnOnce.html" rel="noopener noreferrer"><code>FnOnce</code></a>。当你创建一个闭包时，Rust 编译器会自动创建一个结构，实现这三个结构的相应特性，并将捕获的环境变量作为成员，并使该结构可以作为一个函数被调用。裸露的函数不能捕获环境。</p>
-<p>这些特征之间的最大区别是它们如何接受“self”参数。<a href="https://doc.rust-lang.org/std/ops/trait.Fn.html" rel="noopener noreferrer"><code>Fn</code></a>使用<code>&amp;self</code>，<a href="https://doc.rust-lang.org/std/ops/trait.FnMut.html" rel="noopener noreferrer"><code>FnMut</code></a>使用<code>&amp;mut self</code>，而<a href="https://doc.rust-lang.org/std/ops/trait.FnOnce.html" rel="noopener noreferrer"><code>FnOnce</code></a>使用<code>self</code>。</p>
-<p>即使一个闭包没有捕获任何环境变量，它在运行时也被表示为两个指针，与其他闭包相同。</p>
-<h2>什么是高阶类型，为什么我需要它们，以及为什么 Rust 没有它们？</h2>
-<p>高等类型是指具有未填充参数的类型。类型构造器，如<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>Vec</code></a>，<a href="https://doc.rust-lang.org/std/result/enum.Result.html" rel="noopener noreferrer"><code>Result</code></a>，和<a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html" rel="noopener noreferrer"><code>HashMap</code></a>都是高类型类型的例子：每个类型都需要一些额外的类型参数，以便实际表示一个特定的类型，如<code>Vec&lt;u32&gt;</code>。对高类型的支持意味着这些“不完整”的类型可以在任何可以使用“完整”类型的地方使用，包括作为函数的泛型。</p>
-<p>任何完整的类型，像<a href="https://doc.rust-lang.org/std/primitive.i32.html" rel="noopener noreferrer"><code>i32</code></a>，<a href="https://doc.rust-lang.org/std/primitive.bool.html" rel="noopener noreferrer"><code>bool</code></a>或<a href="https://doc.rust-lang.org/std/primitive.char.html" rel="noopener noreferrer"><code>char</code></a>都属于<code>*</code>类型（这个符号来自类型理论领域）。一个有一个参数的类型，像<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>Vec&lt;T&gt;</code></a>是属于<code>* -&gt; *</code>，意思是<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html" rel="noopener noreferrer"><code>Vec&lt;T&gt;</code></a>接收一个完整的类型，像<a href="https://doc.rust-lang.org/std/primitive.i32.html" rel="noopener noreferrer"><code>i32</code></a>，并返回一个完整类型<code>Vec&lt;i32&gt;</code>。一个有三个参数的类型，如<a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html" rel="noopener noreferrer"><code>HashMap&lt;K, V, S&gt;</code></a>是一种<code>* -&gt; * -&gt; * -&gt; *</code>，并接收三个完整的类型（如<a href="https://doc.rust-lang.org/std/primitive.i32.html" rel="noopener noreferrer"><code>i32</code></a>，<a href="https://doc.rust-lang.org/std/string/struct.String.html" rel="noopener noreferrer"><code>String</code></a>，和<a href="https://doc.rust-lang.org/std/collections/hash_map/struct.RandomState.html" rel="noopener noreferrer"><code>RandomState</code></a>），产生一个新的完整类型<code>HashMap&lt;i32, String, RandomState&gt;</code>。</p>
-<p>除了这些例子之外，类型构造函数还可以接受<em>生命周期</em>参数，我们将其表示为<code>Lt</code>。例如，<code>slice::Iter</code>的种类是<code>Lt -&gt; * -&gt; *</code>，因为它必须像<code>Iter&lt;'a, u32&gt;</code>一样被实例化。</p>
-<p>由于缺乏对高阶类型的支持，因此很难编写某些类型的通用代码。对于像迭代器这样的概念的抽象来说，这尤其成问题，因为迭代器通常至少要在一个生命周期内进行参数化。这反过来又阻碍了对 Rust 的集合进行抽象的 traits 的创建。</p>
-<p>另一个常见的例子是像 functors 或 monads 这样的概念，它们都是类型构造函数，而不是单一类型。</p>
-<p>Rust 目前并不支持高类型的类型，因为与我们想做的其他改进相比，这并不是一个优先事项。由于该设计是一个重大的、跨领域的变化，我们也想谨慎地对待它。但是目前缺乏支持并没有什么内在的原因。</p>
-<h2>通用类型中像<code>&lt;T=Foo&gt;</code>这样的命名类型参数是什么意思?</h2>
-<p>这些被称为<a href="https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#specifying-placeholder-types-in-trait-definitions-with-associated-types" rel="noopener noreferrer">关联类型</a>，它们允许表达不能用<code>where</code>子句表达的特征边界。例如，一个泛型约束<code>X: Bar&lt;T=Foo&gt;</code>意味着"<code>X</code>必须实现 trait <code>Bar</code>，在<code>Bar</code>的实现中，<code>X</code>必须选择<code>Foo</code>作为<code>Bar</code>的关联类型<code>T</code>"。这种约束不能通过<code>where</code>子句来表达的例子包括像<code>Box&lt;Bar&lt;T=Foo&gt;&gt;</code>这样的 trait object。</p>
-<p>关联类型的存在是因为泛型经常涉及类型家族，其中一个类型决定了一个家族中的所有其他类型。例如，一个图的 trait 可能将图本身作为其<code>Self</code>类型，并有节点和边的关联类型。每个图的类型唯一地决定了相关的类型。使用关联类型使这些类型族的工作更加简洁，并且在许多情况下提供更好的类型推理。</p>
-<h2>我可以重载运算符吗? 哪些操作符，如何操作？</h2>
-<p>你可以使用它们的关联特性为各种运算符提供自定义的实现。<a href="https://doc.rust-lang.org/std/ops/trait.Add.html" rel="noopener noreferrer"><code>Add</code></a>代表<code>+</code>，<a href="https://doc.rust-lang.org/std/ops/trait.Mul.html" rel="noopener noreferrer"><code>Mul</code></a>代表<code>*</code>，等等。它看起来像这样。</p>
-<pre><code>use std::ops::Add。
-
-struct Foo;
-
-impl Add for Foo {
-    type Output = Foo;
-    fn add(self, rhs: Foo) -&gt; Self::Output {
-        println!("Adding!");
-        self
-    }
-}
-</code></pre>
-<p>以下操作符可以被重载。</p>
-<table>
-<thead>
-<tr>
-<th align="left">Operation</th>
-<th align="left">Trait</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left"><code>+</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Add.html" rel="noopener noreferrer"><code>Add</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>+=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.AddAssign.html" rel="noopener noreferrer"><code>AddAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>binary -</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Sub.html" rel="noopener noreferrer"><code>Sub</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>-=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.SubAssign.html" rel="noopener noreferrer"><code>SubAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>*</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Mul.html" rel="noopener noreferrer"><code>Mul</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>*=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.MulAssign.html" rel="noopener noreferrer"><code>MulAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>/</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Div.html" rel="noopener noreferrer"><code>Div</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>/=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.DivAssign.html" rel="noopener noreferrer"><code>DivAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>unary -</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Neg.html" rel="noopener noreferrer"><code>Neg</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>%</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Rem.html" rel="noopener noreferrer"><code>Rem</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>%=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.RemAssign.html" rel="noopener noreferrer"><code>RemAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>&amp;</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.BitAnd.html" rel="noopener noreferrer"><code>BitAnd</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>&amp;=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.BitAndAssign.html" rel="noopener noreferrer"><code>BitAndAssign</code></a></td>
-</tr>
-<tr>
-<td align="left">|</td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.BitOr.html" rel="noopener noreferrer"><code>BitOr</code></a></td>
-</tr>
-<tr>
-<td align="left">|=</td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.BitOrAssign.html" rel="noopener noreferrer"><code>BitOrAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>^</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.BitXor.html" rel="noopener noreferrer"><code>BitXor</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>^=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.BitXorAssign.html" rel="noopener noreferrer"><code>BitXorAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>!</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Not.html" rel="noopener noreferrer"><code>Not</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>&lt;&lt;</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Shl.html" rel="noopener noreferrer"><code>Shl</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>&lt;&lt;=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.ShlAssign.html" rel="noopener noreferrer"><code>ShlAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>&gt;&gt;</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Shr.html" rel="noopener noreferrer"><code>Shr</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>&gt;&gt;=</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.ShrAssign.html" rel="noopener noreferrer"><code>ShrAssign</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>*</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Deref.html" rel="noopener noreferrer"><code>Deref</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>mut *</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.DerefMut.html" rel="noopener noreferrer"><code>DerefMut</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>[]</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.Index.html" rel="noopener noreferrer"><code>Index</code></a></td>
-</tr>
-<tr>
-<td align="left"><code>mut []</code></td>
-<td align="left"><a href="https://doc.rust-lang.org/std/ops/trait.IndexMut.html" rel="noopener noreferrer"><code>IndexMut</code></a></td>
-</tr>
-</tbody>
-</table>
-<h2>为什么要在<code>Eq</code>/<code>PartialEq</code>和<code>Ord</code>/<code>PartialOrd</code>之间划分？</h2>
-<p>在 Rust 中，有一些类型的值只有部分排序，或者只有部分相等。部分排序的意思是，在给定的类型中可能存在既不小于也不大于对方的值。部分平等意味着可能有给定类型的值不等于自己。</p>
-<p>浮点类型（<a href="https://doc.rust-lang.org/std/primitive.f32.html" rel="noopener noreferrer"><code>f32</code></a>和<a href="https://doc.rust-lang.org/std/primitive.f64.html" rel="noopener noreferrer"><code>f64</code></a>）是每种类型的很好的例子。任何浮点类型都可以有<code>NaN</code>（意思是“不是一个数字”）的值。<code>NaN</code>不等于自己（<code>NaN == NaN</code>是 false），也不小于或大于任何其他浮点值。因此，<a href="https://doc.rust-lang.org/std/primitive.f32.html" rel="noopener noreferrer"><code>f32</code></a>和[<code>f64</code>]都实现了<a href="https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html" rel="noopener noreferrer"><code>PartialOrd</code></a>和<a href="https://doc.rust-lang.org/std/cmp/trait.PartialEq.html" rel="noopener noreferrer"><code>PartialEq</code></a>，但没有实现<a href="https://doc.rust-lang.org/std/cmp/trait.Ord.html" rel="noopener noreferrer"><code>Ord</code></a>和``Eq`]<a href="https://doc.rust-lang.org/std/cmp/trait.Eq.html" rel="noopener noreferrer">Eq</a>。</p>
-<p>正如在<a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%B8%8D%E8%83%BD%E6%AF%94%E8%BE%83%E6%B5%AE%E7%82%B9%E6%95%B0%E6%88%96%E7%94%A8%E5%AE%83%E4%BB%AC%E4%BD%9C%E4%B8%BAHashMap%E6%88%96BTreeMap%E7%9A%84%E9%94%AE" rel="noopener noreferrer">先前关于 floats 的问题</a>中解释的那样，这些区别很重要，因为有些集合依赖于总排序/equality，以便给出正确的结果。</p>
-<h1>输入/输出</h1>
-<h2>如何将一个文件读成一个“字符串”?</h2>
-<p>使用<a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.read_to_string" rel="noopener noreferrer"><code>read_to_string()</code></a>方法, 这个方法是在<a href="https://doc.rust-lang.org/std/io/index.html" rel="noopener noreferrer"><code>std::io</code></a>中的<a href="https://doc.rust-lang.org/std/io/trait.Read.html" rel="noopener noreferrer"><code>Read</code></a>特性上定义。</p>
-<pre><code>use std::io::Read;
-use std::fs::File;
-
-fn read_file(path: &amp;str) -&gt; Result&lt;String, std::io::Error&gt; {
-    let mut s = String::new();
-    let _ = File::open(path)?.read_to_string(&amp;mut s);  // `s` contains the contents of "foo.txt"
-    Ok(s)
-}
-
-fn main() {
-    match read_file("foo.txt") {
-        Ok(_) =&gt; println!("Got file contents!"),
-        Err(err) =&gt; println!("Getting file contents failed with error: {}", err)
-    };
-}
-</code></pre>
-<h2>如何有效地读取文件输入?</h2>
-<p><a href="https://doc.rust-lang.org/std/fs/struct.File.html" rel="noopener noreferrer"><code>File</code></a>类型实现了<a href="https://doc.rust-lang.org/std/io/trait.Read.html" rel="noopener noreferrer"><code>Read</code></a>特性，它有多种函数用于读写数据，包括<a href="https://doc.rust-lang.org/std/io/trait.Read.html#tymethod.read" rel="noopener noreferrer"><code>read()</code></a>, <a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.read_to_end" rel="noopener noreferrer"><code>read_to_end()</code></a>, <a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.bytes" rel="noopener noreferrer"><code>bytes()</code></a>, <a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.chars" rel="noopener noreferrer"><code>chars()</code></a>, 和<a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.take" rel="noopener noreferrer"><code>take()</code></a> 。这些函数中的每一个都从一个给定的文件中读取一定量的输入。<a href="https://doc.rust-lang.org/std/io/trait.Read.html#tymethod.read" rel="noopener noreferrer"><code>read()</code></a> 在一次调用中读取底层系统所能提供的输入量。<a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.read_to_end" rel="noopener noreferrer"><code>read_to_end()</code></a> 将整个缓冲区读入一个向量，需要多少空间就分配多少。<a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.bytes" rel="noopener noreferrer"><code>bytes()</code></a>和<a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.chars" rel="noopener noreferrer"><code>chars()</code></a>分别允许你对文件的字节和字符进行迭代。最后，<a href="https://doc.rust-lang.org/std/io/trait.Read.html#method.take" rel="noopener noreferrer"><code>take()</code></a>允许你从文件中读取任意数量的字节。总的来说，这些应该允许你有效地读入任何你需要的数据。</p>
-<p>对于缓冲读取，使用<a href="https://doc.rust-lang.org/std/io/struct.BufReader.html" rel="noopener noreferrer"><code>BufReader</code></a>结构，这有助于减少读取时的系统调用数量。</p>
-<h2>我如何在 Rust 中进行异步输入/输出？</h2>
-<p>使用 <a href="https://github.com/tokio-rs/tokio" rel="noopener noreferrer">tokio</a>。</p>
-<h2>我如何在 Rust 中获得命令行参数?</h2>
-<p>最简单的方法是使用<a href="https://doc.rust-lang.org/std/env/struct.Args.html" rel="noopener noreferrer"><code>Args</code></a>，它提供了一个输入参数的迭代器。</p>
-<p>如果你正在寻找更强大的库，在 crates.io 上有<a href="https://crates.io/keywords/argument" rel="noopener noreferrer">一些选项</a>。</p>
-<h1>错误处理</h1>
-<h2>为什么 Rust 没有异常？</h2>
-<p>异常使控制流的理解复杂化，它们在类型系统之外表达有效性/无效性，而且它们与多线程代码（Rust 的主要焦点）的互操作性很差。</p>
-<p>Rust 更倾向于采用基于类型的错误处理方法，这在书中有<a href="https://doc.rust-lang.org/book/ch09-00-error-handling.html" rel="noopener noreferrer">详细介绍</a>。这与 Rust 的控制流、并发性和其他一切都更加吻合。</p>
-<h2>到处都有`unwrap()'是怎么回事?</h2>
-<p><code>unwrap()</code>是一个提取<a href="https://doc.rust-lang.org/std/option/enum.Option.html" rel="noopener noreferrer"><code>Option</code></a>或<a href="https://doc.rust-lang.org/std/result/enum.Result.html" rel="noopener noreferrer"><code>Result</code></a>里面的值的函数，如果没有值就会 panic。</p>
-<p><code>unwrap()</code>不应该是你处理预期出现的错误的默认方式，例如用户输入不正确。在生产代码中，它应该被视为一个断言，即该值是非空的，如果违反，将使程序崩溃。</p>
-<p>它对快速原型也很有用，在那里你还不想处理错误，或者在博客文章中，错误处理会分散对重点的注意力。</p>
-<h2>当我试图运行使用<code>try!</code>宏的示例代码时，为什么我得到一个错误?</h2>
-<p>这可能是函数的返回类型的问题。<a href="https://doc.rust-lang.org/std/macro.try!.html" rel="noopener noreferrer"><code>try!</code></a>宏要么从<a href="https://doc.rust-lang.org/std/result/enum.Result.html" rel="noopener noreferrer"><code>Result</code></a>中提取数值，要么提前返回，错误是<a href="https://doc.rust-lang.org/std/result/enum.Result.html" rel="noopener noreferrer"><code>Result</code></a>携带的。这意味着<a href="https://doc.rust-lang.org/std/macro.try!.html" rel="noopener noreferrer"><code>try</code></a>只对返回<a href="https://doc.rust-lang.org/std/result/enum.Result.html" rel="noopener noreferrer"><code>Result</code></a>本身的函数有效，其中<code>Err</code>构造的类型实现了<code>From::from(err)</code>。特别是，这意味着<a href="https://doc.rust-lang.org/std/macro.try!.html" rel="noopener noreferrer"><code>try!</code></a>宏不能在<code>main</code>函数中工作。</p>
-<h2>有没有比到处都是“Result”更简单的方法来做错误处理？</h2>
-<p>如果你正在寻找一种方法来避免在其他人的代码中处理<a href="https://doc.rust-lang.org/std/result/enum.Result.html" rel="noopener noreferrer"><code>Result</code></a>，总是有<a href="https://doc.rust-lang.org/core/option/enum.Option.html#method.unwrap" rel="noopener noreferrer"><code>unwrap()</code></a>，但这可能不是你想要的。<a href="https://doc.rust-lang.org/std/result/enum.Result.html" rel="noopener noreferrer"><code>Result</code></a>是一个指标，表明某些计算可能会或可能不会成功完成。要求你明确地处理这些失败是 Rust 鼓励健壮性的方式之一。Rust 提供了像<a href="https://doc.rust-lang.org/std/macro.try!.html" rel="noopener noreferrer"><code>try!</code>宏</a>这样的工具，使处理失败的过程符合人体工程学。</p>
-<p>如果你真的不想处理错误，可以使用<a href="https://doc.rust-lang.org/core/option/enum.Option.html#method.unwrap" rel="noopener noreferrer"><code>unwrap()</code></a>，但要知道，这样做意味着代码在失败时 panic，这通常会导致关闭进程。</p>
-<h1>并发</h1>
-<h2>我可以在没有“不安全”块的情况下跨线程使用静态值吗？</h2>
-<p>如果是同步的，修改是安全的。修改一个静态的<a href="https://doc.rust-lang.org/std/sync/struct.Mutex.html" rel="noopener noreferrer"><code>Mutex</code></a>（通过<a href="https://crates.io/crates/lazy_static/" rel="noopener noreferrer">lazy-static</a> crate 懒惰地初始化）不需要一个<code>unsafe</code>块，修改一个静态的<a href="https://doc.rust-lang.org/std/sync/atomic/struct.AtomicUsize.html" rel="noopener noreferrer"><code>AtomicUsize</code></a>（可以不用 lazy_static 初始化）也是如此。</p>
-<p>更一般地说，如果一个类型实现了<a href="https://doc.rust-lang.org/std/marker/trait.Sync.html" rel="noopener noreferrer"><code>Sync</code></a>，并且没有实现<a href="https://doc.rust-lang.org/std/ops/trait.Drop.html" rel="noopener noreferrer"><code>Drop</code></a>，它<a href="https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#accessing-or-modifying-a-mutable-static-variable" rel="noopener noreferrer">可以在<code>static</code>中使用</a>。</p>
-<h1>宏</h1>
-<h2>我可以写一个宏来生成标识符吗?</h2>
-<p>目前不能。Rust 的宏是<a href="https://en.wikipedia.org/wiki/Hygienic_macro" rel="noopener noreferrer">"卫生宏"</a>，它有意避免捕捉或创建可能与其他标识符发生意外碰撞的标识符。它们的功能与通常与 C 预处理器相关的宏的风格明显不同。宏调用只能出现在被明确支持的地方：项目、方法声明、语句、表达式和模式。这里，“方法声明”指的是可以放置方法的空白处。它们不能被用来完成部分方法声明。按照同样的逻辑，它们也不能用来完成一个部分变量声明。</p>
-<h1>Debugging and Tooling</h1>
-<h2>我如何调试 Rust 程序？</h2>
-<p>Rust 程序可以使用 <a href="https://sourceware.org/gdb/current/onlinedocs/gdb/" rel="noopener noreferrer">gdb</a> 或 <a href="http://lldb.llvm.org/tutorial.html" rel="noopener noreferrer">lldb</a> 进行调试，与 C 和 C++ 相同。事实上，每一个 Rust 的安装都带有 rust-gdb 和 rust-lldb 中的一个或两个（取决于平台支持）。这些是对 gdb 和 lldb 的封装，并启用了 Rust pretty-printing。</p>
-<h2><code>rustc</code>说标准库代码中发生了 panic。我如何定位我的代码中的错误？</h2>
-<p>这个错误通常是由客户端代码中<a href="https://doc.rust-lang.org/core/option/enum.Option.html#method.unwrap" rel="noopener noreferrer"><code>unwrap()</code>ing</a>一个<code>None</code>或<code>Err</code>引起的。通过设置环境变量<code>RUST_BACKTRACE=1</code>来启用回溯，有助于获得更多信息。在调试模式下编译（默认为“cargo build”）也有帮助。使用调试器，如提供的<code>rust-gdb</code>或<code>rust-lldb</code>也很有帮助。</p>
-<h2>我应该使用什么 IDE？</h2>
-<p>Rust 的开发环境有很多选择，所有这些都在非官方的 <a href="https://areweideyet.com/" rel="noopener noreferrer">IDE 支持页面</a>上有详细说明。</p>
-<h1>Low-Level</h1>
-<h2>我怎样才能<code>memcpy</code>字节?</h2>
-<p>如果你想安全地克隆一个现有的分片，你可以使用<a href="https://doc.rust-lang.org/std/primitive.slice.html#method.clone_from_slice" rel="noopener noreferrer"><code>clone_from_slice</code></a>。</p>
-<p>要复制可能重叠的字节，使用<a href="https://doc.rust-lang.org/std/marker/trait.Copy.html" rel="noopener noreferrer"><code>copy</code></a>。要复制不重叠的字节，使用<a href="https://doc.rust-lang.org/std/ptr/fn.copy_nonoverlapping.html" rel="noopener noreferrer"><code>copy_nonoverlapping</code></a>。这两个函数都是“不安全”的，因为它们都可以被用来破坏语言的安全保证。在使用它们时要注意。</p>
-<h2>没有标准库，Rust 能合理地运行吗？</h2>
-<p>当然可以。Rust 程序可以使用<code>#![no_std]</code>属性设置为不加载标准库。设置了这个属性后，你可以继续使用 Rust 核心库，它只是平台无关的原语。因此，它不包括 IO、并发性、堆分配等。</p>
-<h2>我可以用 Rust 写一个操作系统吗？</h2>
-<p>是的！事实上，有<a href="http://wiki.osdev.org/Rust" rel="noopener noreferrer">几个正在进行的项目就是这样</a>。</p>
-<h2>我如何在文件或其他字节流中以大数或小数格式读写数字类型如<code>i32</code>或<code>f64</code>?</h2>
-<p>你应该看看 <a href="https://docs.rs/byteorder" rel="noopener noreferrer">byteorder crate</a>，它提供了相应的实用程序。</p>
-<h2>Rust 是否保证一个特定的数据布局？</h2>
-<p>默认情况下不是。在一般情况下，<code>enum</code>和<code>struct</code>的布局是未定义的。这允许编译器进行潜在的优化，比如为判别式重新使用填充物，压缩嵌套的<code>enum</code>的变体，重新排序字段以移除填充物，等等。不携带数据的<code>enum</code>（“C-like”）有资格拥有一个定义的表示。这种<code>枚举</code>很容易区分，因为它们只是一个没有数据的名字列表。</p>
-<pre><code>snum CLike {
-    A,
-    B = 32,
-    C = 34,
-    D
-}
-</code></pre>
-<p><code>＃[repr(C)]</code>属性可以应用于这些“enum”，使它们在同等的 C 代码中具有相同的表示。这允许在 FFI 代码中使用 Rust 的“enum”，而在大多数情况下也使用 C 的“enum”。该属性也可以应用于<code>struct</code>，以获得与<code>C struct</code>相同的布局。</p>
-<h1>跨平台</h1>
-<h2>在 Rust 中表达特定平台行为的习惯性方法是什么？</h2>
-<p>平台特定行为可以用<a href="https://doc.rust-lang.org/reference/attributes.html#conditional-compilation" rel="noopener noreferrer">条件编译属性</a>来表达，如<code>target_os</code>, <code>target_family</code>, <code>target_endian</code>，等等。</p>
-<h2>Rust 可以用于 Android/iOS 编程吗？</h2>
-<p>是的，它可以! 在 <a href="https://github.com/tomaka/android-rs-glue" rel="noopener noreferrer">Android</a>和 <a href="https://www.bignerdranch.com/blog/building-an-ios-app-in-rust-part-1/" rel="noopener noreferrer">iOS</a> 中都已经有使用 Rust 的例子。它确实需要一些工作来设置，但 Rust 在这两个平台上的功能都很好。</p>
-<h2>我可以在网络浏览器中运行我的 Rust 程序吗？</h2>
-<p>有可能。Rust 对<a href="http://asmjs.org/" rel="noopener noreferrer">asm.js</a>和<a href="http://webassembly.org/" rel="noopener noreferrer">WebAssembly</a>都有<a href="https://davidmcneil.gitbooks.io/the-rusty-web/" rel="noopener noreferrer">实验性支持</a>。</p>
-<h2>我如何在 Rust 中进行交叉编译？</h2>
-<p>在 Rust 中可以进行交叉编译，但需要<a href="https://github.com/japaric/rust-cross/blob/master/README.md" rel="noopener noreferrer">一点工作</a>来设置。每个 Rust 编译器都是一个交叉编译器，但是库需要针对目标平台进行交叉编译。</p>
-<p>Rust 确实为每个支持的平台分发了标准库的副本，这些副本包含在分发页面上找到的每个构建目录的<code>rust-std-*</code>文件中，但目前还没有自动安装的方法。</p>
-<h1>mod 和 crate</h1>
-<h2>mod 和 crate 之间的关系是什么？</h2>
-<ul>
-<li>crate 是一个编译单元，它是 Rust 编译器可以操作的最小的代码量。</li>
-<li>mod 是 crate 内的一个（可能是嵌套的）代码组织单元。</li>
-<li>一个 crate 包含一个隐含的、未命名的顶层 mod。</li>
-<li>递归定义可以跨越 mod，但不能跨越 crate。</li>
-</ul>
-<h2>为什么 Rust 编译器找不到我正在<code>使用</code>的这个库?</h2>
-<p>有很多可能的答案，但一个常见的错误是没有意识到<code>use</code>声明是相对于 crate root 的。试着改写你的声明，使用它们在你的项目根文件中定义的路径，看看是否能解决这个问题。</p>
-<p>还有“self”和“super”，它们分别将“use”路径区分为相对于当前 mod 或父 mod。</p>
-<p>关于<code>use</code>库的完整信息，请阅读 Rust 书中的<a href="https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html" rel="noopener noreferrer">"Packages, Crates, and Modules"</a>一章。</p>
-<h2>为什么我必须在 crate 的顶层用<code>mod</code>声明 mod 文件，而不是直接<code>use</code>它们？</h2>
-<p>在 Rust 中，有两种方法来声明模块，内联或在另一个文件中。下面是各自的一个例子。</p>
-<pre><code>// In main.rs
-mod hello {
-    pub fn f() {
-        println!("hello!");
-    }
-}
-
-fn main() {
-    hello::f();
-}
-</code></pre>
-<pre><code>// In main.rs
-mod hello;
-
-fn main() {
-    hello::f();
-}
-
-// In hello.rs
-pub fn f() {
-    println!("hello!");
-}
-</code></pre>
-<p>在第一个例子中，模块被定义在它所使用的同一文件中。在第二个例子中，主文件中的模块声明告诉编译器寻找<code>hello.rs</code>或<code>hello/mod.rs</code>，并加载该文件。</p>
-<p>注意<code>mod</code>和<code>use</code>之间的区别：<code>mod</code>声明一个模块的存在，而<code>use</code>引用一个在其他地方声明的模块，将其内容纳入当前模块的范围。</p>
-<h2>我如何配置 Cargo 使用代理？</h2>
-<p>参考 <a href="https://rsproxy.cn/" rel="noopener noreferrer">https://rsproxy.cn/</a>。</p>
-<h2>为什么我已经“use”了 crate，但编译器还是找不到方法的实现？</h2>
-<p>对于定义在 trait 上的方法，你必须明确导入 trait 声明。这意味着仅仅导入一个结构实现 trait 的模块是不够的，你还必须导入 trait 本身。</p>
-<h2>为什么编译器不能为我推断出<code>use</code>声明？</h2>
-<p>它可能可以，但你也不希望它这样做。虽然在很多情况下，编译器有可能通过简单地寻找给定标识符的定义位置来确定导入的正确模块，但在一般情况下可能不是这样的。<code>rustc</code>中任何用于选择竞争性选项的决策规则，在某些情况下可能会引起惊讶和混乱，Rust 更倾向于明确说明名称的来源。</p>
-<p>例如，编译器可以说，在标识符定义相互竞争的情况下，会选择最早导入的模块的定义。所以如果模块<code>foo</code>和模块<code>bar</code>都定义了标识符<code>baz</code>，但是<code>foo</code>是第一个注册的模块，编译器会插入<code>use foo::baz;</code>。</p>
-<pre><code>mod foo;
-mod bar;
-
-// use foo::baz  // to be inserted by the compiler.
-
-fn main() {
-  baz();
-}
-</code></pre>
-<p>如果你知道这种情况会发生，也许它可以节省少量的按键，但它也大大增加了当你真正想把<code>baz()</code>变成<code>bar::baz()</code>时出现令人惊讶的错误信息的可能性，而且它通过使函数调用的意义依赖于模块声明而降低了代码的可读性。这些都是我们不愿意做的折衷。</p>
-<p>然而，IDE 可以帮助管理声明，这将给你带来两方面的好处：机器协助拉入名字，但明确声明这些名字的来源。</p>
-<h2>我如何进行动态 Rust 库加载？</h2>
-<p>用<a href="https://crates.io/crates/libloading" rel="noopener noreferrer"> libloading </a>导入 Rust 中的动态库，它提供了一个跨平台的动态链接系统。</p>
-<h2>为什么 crates.io 没有命名空间？</h2>
-<p>引用 crates.io 设计的<a href="https://internals.rust-lang.org/t/crates-io-package-policies/1041" rel="noopener noreferrer">官方解释</a>：</p>
-<blockquote>
-<p>在使用 crates.io 的第一个月里，很多人问我们是否有可能引入<a href="https://github.com/rust-lang/crates.io/issues/58" rel="noopener noreferrer">命名空间</a>。</p>
-<p>虽然 namespace 允许多个作者使用单一的、通用的名称，但它们增加了包在 Rust 代码中的引用和人类对包的交流的复杂性。乍一看，它们允许多个作者使用“http”这样的名字，但这仅仅意味着人们需要将这些包称为“wycats'http”或“reem'http”，与“wycats-http”或“reem-http”这样的包名相比没有什么好处。</p>
-<p>当我们研究没有命名空间的软件包生态系统时，我们发现人们倾向于使用更有创意的名字（如<code>nokogiri</code>而不是<code>tenderlove's libxml2</code>）。这些有创意的名字往往简短易记，部分原因是缺乏任何层次结构。它们使人们更容易简洁明了地交流软件包。他们创造了令人兴奋的品牌。我们已经看到了一些 10,000+ 软件包生态系统的成功，如 NPM 和 RubyGems，它们的社区在一个单一的命名空间内蓬勃发展。</p>
-<p>简而言之，我们认为如果 Piston 选择<code>bvssvni/game-engine</code>这样的名字（允许其他用户选择<code>wycats/game-engine</code>）而不是简单的<code>piston</code>，那么 Cargo 的生态系统就不会好转。</p>
-<p>因为命名空间在很多方面严格来说都比较复杂，而且如果将来有必要的话，还可以兼容添加，所以我们要坚持使用单一的共享命名空间。</p>
-</blockquote>
-<h1>库</h1>
-<h2>我怎样才能发出 HTTP 请求?</h2>
-<p>标准库不包括 HTTP 的实现，所以你要使用一个外部的 crate。
-<a href="http://docs.rs/reqwest" rel="noopener noreferrer">reqwest</a> 是最简单的。它建立在<a href="https://github.com/hyperium/hyper" rel="noopener noreferrer">hyper</a>上，用 Rust 编写，但也有<a href="https://crates.io/keywords/http" rel="noopener noreferrer">一些其他的</a>。<a href="https://docs.rs/curl" rel="noopener noreferrer">curl</a> crate 被广泛使用，它提供了与 curl 库的绑定。</p>
-<h2>我如何用 Rust 编写 GUI 应用程序？</h2>
-<p>有多种方法可以在 Rust 中编写 GUI 应用程序。只要看看<a href="https://github.com/kud1ing/awesome-rust#gui" rel="noopener noreferrer">这个 GUI 框架的列表</a>。</p>
-<h2>我怎样才能解析 JSON/XML?</h2>
-<p><a href="https://serde.rs" rel="noopener noreferrer">Serde</a>是推荐的 Rust 数据序列化和反序列化的库，可以从许多不同的格式中获取。</p>
-<h2>是否有一个标准的 2D+ 矢量和形状 crate?</h2>
-<p>还没有! 想写一个吗？</p>
-<h2>我如何在 Rust 中编写一个 OpenGL 应用程序?</h2>
-<p><a href="https://github.com/tomaka/glium" rel="noopener noreferrer">Glium</a> 是 Rust 中 OpenGL 编程的主要库。<a href="https://github.com/bjz/glfw-rs" rel="noopener noreferrer">GLFW</a> 也是一个可靠的选择。</p>
-<h2>我可以用 Rust 写一个视频游戏吗？</h2>
-<p>是的，你可以。Rust 的主要游戏编程库是<a href="http://www.piston.rs/" rel="noopener noreferrer">Piston</a>，而且还有一个<a href="https://www.reddit.com/r/rust_gamedev/" rel="noopener noreferrer"> Rust 游戏编程的 subreddit </a>和一个 IRC 频道（<code>#rust-gamedev</code> on <a href="https://wiki.mozilla.org/IRC" rel="noopener noreferrer">Mozilla IRC</a>）。</p>
-<h1>设计模式</h1>
-<h2>Rust是面向对象的吗？</h2>
-<p>它是多范式的。很多在 OO 语言中可以做的事情在 Rust 中也可以做，但不是所有的事情，也不总是使用你所习惯的那种抽象方式。</p>
-<h2>我如何将面向对象的概念映射到 Rust 中？</h2>
-<p>这取决于。有一些方法可以将面向对象的概念，如<a href="https://www.reddit.com/r/rust/comments/2sryuw/ideaquestion_about_multiple_inheritence/" rel="noopener noreferrer">多重继承</a>翻译成 Rust，但由于 Rust 不是面向对象的，所以翻译的结果可能与它在 OO 语言中的外观有很大不同。</p>
-<h2>我如何处理带有可选参数的结构的配置？</h2>
-<p>最简单的方法是在你用来构建结构实例的任何函数中使用<a href="https://doc.rust-lang.org/std/option/enum.Option.html" rel="noopener noreferrer"><code>Option</code></a>类型（通常是<code>new()</code>）。另一种方法是使用构建器模式，在构建所构建的类型之前，只必须调用某些实例化成员变量的函数。</p>
-<h2>我如何在 Rust 中做全局变量?</h2>
-<p>Rust 中的全局变量可以使用<code>const</code>声明来实现编译时计算的全局常量，而<code>static</code>可以用来实现可变的全局变量。请注意，修改<code>static mut</code>变量需要使用<code>unsafe</code>，因为它允许数据竞争，而在安全的 Rust 中保证不会发生这种情况。<code>const</code>和<code>static</code>值之间的一个重要区别是，你可以对<code>static</code>值进行引用，但不能对<code>const</code>值进行引用，后者没有指定的内存位置。关于<code>const</code>与<code>static</code>的更多信息，请阅读<a href="https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#accessing-or-modifying-a-mutable-static-variable" rel="noopener noreferrer"> Rust 书</a>。</p>
-<h2>我如何设置程序化定义的编译时常量？</h2>
-<p>Rust 目前对编译时常量的支持有限。你可以使用“const”声明来定义基元（类似于“static”，但是是不可变的，在内存中没有指定的位置），也可以定义“const”函数和固有方法。</p>
-<p>要定义不能通过这些机制定义的程序性常量，可以使用<a href="https://crates.io/crates/lazy_static" rel="noopener noreferrer"><code>lazy-static</code></a> crate，它通过在第一次使用时自动计算常量来模拟编译时计算。</p>
-<h2>我可以运行发生在 main 之前的初始化代码吗？</h2>
-<p>Rust 没有“在<code>main</code>之前的生命”的概念。最接近的是通过<a href="https://crates.io/crates/lazy_static" rel="noopener noreferrer"><code>lazy-static</code></a> crate 来完成，它通过在静态变量第一次使用时懒散地初始化静态变量来模拟“main之前”。</p>
-<h2>Rust 允许 globals 使用非结构表达式的值吗？</h2>
-<p>不允许。全局变量不能有一个非结构表达式的构造函数，也不能有一个析构函数。静态构造函数是不可取的，因为确保静态初始化顺序的可移植性是很困难的。main 之前的生命通常被认为是一个错误的功能，所以 Rust 不允许它。</p>
-<p>参见 <a href="http://yosefk.com/c++fqa/ctors.html#fqa-10.12" rel="noopener noreferrer">C++ FQA </a>中关于“静态初始化顺序惨败”的内容，以及<a href="https://ericlippert.com/2013/02/06/static-constructors-part-one/" rel="noopener noreferrer"> Eric Lippert 的博客</a>中关于 C# 的挑战，它也有这种特性。</p>
-<p>你可以用<a href="https://crates.io/crates/lazy_static/" rel="noopener noreferrer"> lazy-static </a>工具箱来近似非内容表达式的 globals。</p>
-<h1>其他语言</h1>
-<h2>我怎样才能在 Rust 中实现类似 C 语言的<code>struct X { static int X; };</code>的东西呢？</h2>
-<p>Rust 没有上面代码片断中所示的<code>静态</code>字段。相反，你可以在一个给定的模块中声明一个<code>静态</code>变量，这个变量对该模块是私有的。</p>
-<h2>我如何将 C 风格的枚举转换为整数，反之亦然？</h2>
-<p>将 C 风格的枚举转换为整数可以用<code>as</code>表达式来完成，比如<code>e as i64</code>(其中<code>e</code>是某个枚举)。</p>
-<p>另一个方向的转换可以用<code>match</code>语句来完成, 它将不同的数字值映射到枚举的不同潜在值上.</p>
-<h2>为什么 Rust 程序的二进制大小比 C 程序大?</h2>
-<p>有几个因素导致 Rust 程序默认比功能相当的 C 程序有较大的二进制大小。一般来说，Rust 更倾向于对现实世界的程序性能进行优化，而不是对小程序的大小进行优化。</p>
-<h3>单态化</h3>
-<p>Rust 对泛型进行了单态化处理，这意味着在程序中每使用一个具体类型，就会生成一个新的泛型函数或类型。这类似于 C++ 中模板的工作方式。例如，在下面的程序中：</p>
-<pre><code>fn foo&lt;T&gt;(t: T) {
-    // ... do something
-}
-
-fn main() {
-    foo(10);       // i32
-    foo("hello");  // &amp;str
-}
-</code></pre>
-<p>两个不同版本的<code>foo</code>将出现在最终的二进制文件中，一个专门用于<code>i32</code>输入，一个专门用于<code>&amp;str</code>输入。这使得通用函数的静态调度更加有效，但代价是一个更大的二进制文件。</p>
-<h3>调试符号</h3>
-<p>Rust 程序在编译时保留了一些调试符号，即使是在 release 模式下编译。这些符号用于提供 panic 时的 backtrace，可以用<code>strip</code>或其他调试符号移除工具移除。值得注意的是，用 Cargo 在 release 模式下编译，相当于用 rustc 设置优化级别 3。另一个优化级别（称为<code>s</code>或<code>z</code>）<a href="https://github.com/rust-lang/rust/pull/32386" rel="noopener noreferrer">已被添加</a>，它告诉编译器为大小而不是性能进行优化。</p>
-<h3>链接时优化</h3>
-<p>Rust 默认不做链接时优化，但可以被指示这样做。这增加了 Rust 编译器可能做的优化量，并对二进制的大小有小的影响。与之前提到的尺寸优化模式相结合，这种影响可能更大。</p>
-<h3>标准库</h3>
-<p>Rust 标准库包括 libbacktrace 和 libunwind，这在某些程序中可能是不可取的。因此，使用<code>#![no_std]</code>可以带来更小的二进制文件，但通常也会对你正在编写的那种 Rust 代码造成实质性的改变。请注意，在没有标准库的情况下使用 Rust，通常在功能上更接近于同等的 C 代码。</p>
-<p>举个例子，下面的 C 程序读入一个名字，并对有这个名字的人说“你好”。</p>
-<pre><code>#include &lt;stdio.h&gt;
-
-int main(void) {
-    printf("What's your name?\n");
-    char input[100] = {0};
-    scanf("%s", input);
-    printf("Hello %s!\n", input);
-    return 0;
-}
-</code></pre>
-<p>用Rust重写这个，你可能会得到如下的东西。</p>
-<pre><code>use std::io;
-
-fn main() {
-    println!("What's your name?");
-    let mut input = String::new();
-    io::stdin().read_line(&amp;mut input).unwrap();
-    println!("Hello {}!", input);
-}
-</code></pre>
-<p>这个程序在编译后与 C 程序相比，会有更大的二进制，使用更多的内存。但是这个程序并不完全等同于上面的 C 代码。等价的 Rust 代码反而会是这样的。</p>
-<pre><code>#![feature(lang_items)]
-#![feature(libc)]
-#![feature(no_std)]
-#![feature(start)]
-#![no_std]
-
-extern crate libc;
-
-extern "C" {
-    fn printf(fmt: *const u8, ...) -&gt; i32;
-    fn scanf(fmt: *const u8, ...) -&gt; i32;
-}
-
-#[start]
-fn start(_argc: isize, _argv: *const *const u8) -&gt; isize {
-    unsafe {
-        printf(b"What's your name?\n\0".as_ptr());
-        let mut input = [0u8; 100];
-        scanf(b"%s\0".as_ptr(), &amp;mut input);
-        printf(b"Hello %s!\n\0".as_ptr(), &amp;input);
-        0
-    }
-}
-
-#[lang="eh_personality"] extern fn eh_personality() {}
-#[lang="panic_fmt"] fn panic_fmt() -&gt; ! { loop {} }
-#[lang="stack_exhausted"] extern fn stack_exhausted() {}
-</code></pre>
-<p>这确实应该在内存使用方面与 C 语言大致相同，但代价是更多的程序员复杂性，以及缺乏通常由 Rust 提供的静态保证（在这里通过使用<code>unsafe</code>来避免）。</p>
-<h2>为什么 Rust 不像 C 那样有一个稳定的 ABI，为什么我必须用 extern 来注解东西？</h2>
-<p>对 ABI 的承诺是一个重大的决定，会限制未来潜在的有利的语言变化。鉴于 Rust 在 2015 年 5 月才达到 1.0，现在做出像稳定 ABI 这样大的承诺还为时过早。但这并不意味着未来不会发生。(尽管 C++ 已经成功地运行了很多年而没有指定一个稳定的 ABI)。</p>
-<p><code>extern</code>关键字允许 Rust 使用特定的 ABI，例如定义明确的 C ABI，以便与其他语言互操作。</p>
-<h2>Rust 代码可以调用 C 代码吗？</h2>
-<p>可以。从 Rust 中调用 C 代码的设计与从 C++ 中调用 C 代码一样高效。</p>
-<h2>C 代码可以调用 Rust 代码吗?</h2>
-<p>是的，Rust 代码必须通过“extern”声明公开，这使得它与 C-ABI 兼容。这样的函数可以作为一个函数指针传递给 C 代码，或者，如果赋予<code>#[no_mangle]</code>属性以禁用符号纠缠，可以直接从 C 代码中调用。</p>
-<h2>我已经写了完美的 C++ 代码。Rust 能给我什么？</h2>
-<p>现代 C++ 包含了许多使编写安全和正确的代码不容易出错的特性，但它并不完美，而且仍然很容易引入不安全因素。这是 C++ 的核心开发人员正在努力克服的问题，但是 C++ 受限于悠久的历史，它比他们现在试图实现的很多想法都要早。</p>
-<p>Rust 从第一天起就被设计成一种安全的系统编程语言，这意味着它不会受到历史上的设计决定的限制，而这些决定使 C++ 的安全问题变得如此复杂。在 C++ 中，安全是通过谨慎的个人纪律实现的，而且很容易出错。在 Rust 中，安全是默认的。它让你有能力在一个包括不如你完美的人在内的团队中工作，而不必花时间反复检查他们的代码是否存在安全漏洞。</p>
-<h2>我如何在 Rust 中实现相当于 C++ 模板的专业化？</h2>
-<p>Rust 目前还没有与模板专业化完全对等的东西，但它<a href="https://github.com/rust-lang/rust/issues/31844" rel="noopener noreferrer">正在研究中</a>，希望能很快加入。然而，类似的效果可以通过<a href="https://doc.rust-lang.org/book/ch19-03-advanced-traits.html" rel="noopener noreferrer">关联类型</a>实现。</p>
-<h2>Rust 的所有权系统与 C++ 的移动语义有什么关系？</h2>
-<p>底层的概念是相似的，但这两个系统在实践中的工作方式是非常不同的。在这两个系统中，“move”一个值都是一种为了转移其底层资源的所有权的方式。例如，移动一个字符串会转移字符串的缓冲区，而不是复制它。</p>
-<p>在 Rust 中，所有权转移是默认行为。例如，如果我编写了一个以“String”为参数的函数，这个函数将对其调用者提供的<code>String</code>值拥有所有权。</p>
-<pre><code>fn process(s: String) { }
-
-fn caller() {
-    let s = String::from("Hello, world!");
-    process(s); // Transfers ownership of `s` to `process`
-    process(s); // Error! ownership already transferred.
-}
-</code></pre>
-<p>正如你在上面的片段中看到的，在函数<code>caller</code>中，对<code>process</code>的第一次调用转移了变量<code>s</code>的所有权。编译器会跟踪所有权，所以第二次调用<code>process</code>会导致一个错误，因为将同一个值的所有权转让两次是非法的。如果一个值有一个未完成的引用，Rust 也会阻止你移动这个值。</p>
-<p>C++ 采取了一种不同的方法。在 C++ 中，默认的做法是复制一个值（更确切地说，是调用复制构造函数）。然而，被调用者可以使用一个“rvalue reference”来声明他们的参数，例如<code>string&amp;&amp;</code>，以表明他们将获得该参数所拥有的一些资源的所有权（在这个例子中，字符串的内部缓冲区）。然后调用者必须传递一个临时表达式或使用<code>std::move</code>进行明确的移动。大致相当于上面的函数<code>process</code>的粗略等价物是：</p>
-<pre><code>void process(string&amp;&amp; s) { }
-
-void caller() {
-    string s("Hello, world!");
-    process(std::move(s));
-    process(std::move(s));
-}
-</code></pre>
-<p>C++ 编译器没有义务去跟踪移动。例如，上面的代码在编译时没有任何警告或错误，至少在使用默认的设置的情况下，上述代码在编译时没有任何警告或错误。此外，在C++中，字符串<code>s</code>本身的所有权（如果不是它的内部缓冲区的话）仍然属于<code>caller</code>，所以<code>s</code>的析构函数会在<code>caller</code>返回时运行，即使它已经被移动了（相反，在 Rust 中，被移动的值只被其新主人丢弃）。</p>
-<h2>我怎样才能从 Rust 与 C++ 互操作，或者从 C++ 与 Rust 互操作？</h2>
-<p>Rust 和 C++ 可以通过 C 语言进行互操作。Rust 和 C++ 都为 C 语言提供了一个<a href="https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#using-extern-functions-to-call-external-code" rel="noopener noreferrer">外来函数接口</a>，并可以用它来进行相互之间的通信。如果编写 C 语言绑定太过繁琐，你可以使用<a href="https://github.com/rust-lang/rust-bindgen" rel="noopener noreferrer">rust-bindgen</a>来帮助自动生成可行的 C 语言绑定。</p>
-<h2>Rust 有 C++ 风格的构造函数吗？</h2>
-<p>不，函数的作用与构造函数相同，不会增加语言的复杂性。在 Rust 中，相当于构造函数的通常名称是<code>new()</code>，尽管这只是一个惯例而不是语言规则。<code>new()</code>函数实际上就像其他函数一样。它的一个例子是这样的。</p>
-<pre><code>struct Foo {
-    a: i32,
-    b: f64,
-    c: bool,
-}
-
-impl Foo {
-    fn new() -&gt; Foo {
-        Foo {
-            a: 0,
-            b: 0.0,
-            c: false,
-        }
-    }
-}
-</code></pre>
-<h2>Rust 有复制构造函数吗？</h2>
-<p>不完全是。实现了<code>Copy</code>的类型会做一个标准的类似于 C 语言的“浅拷贝”，不需要额外的工作（类似于 C++ 中的 trivially copyable 类型）。不可能实现需要自定义复制行为的<code>Copy</code>类型。相反，在 Rust 中，“复制构造器”是通过实现<code>Clone</code>特性，并明确调用<code>clone</code>方法来创建的。将用户定义的复制操作符显性化，使开发者更容易识别潜在的昂贵操作。</p>
-<h2>Rust 有移动构造函数吗？</h2>
-<p>没有。所有类型的值都是通过<code>memcpy</code>移动的。这使得编写通用的不安全代码变得更加简单，因为赋值、传递和返回都是已知的，不会产生像解绑（unwinding）那样的副作用。</p>
-<h2>Go 和 Rust 有什么相似之处，又有什么不同？</h2>
-<p>Rust 和 Go 的设计目标有很大不同。以下的差异并不是唯一的差异（这些差异太多，无法一一列举），但却是其中几个比较重要的差异：</p>
-<ul>
-<li>Rust 比 Go 层级更低。例如，Rust 不需要垃圾收集器，而 Go 需要。一般来说，Rust 提供的控制水平与 C 或 C++ 相当。</li>
-<li>Rust 的重点是确保安全和效率，同时提供高层次的能力，而 Go 的重点是成为一种小而简单的语言，可以快速编译并与各种工具很好地配合。</li>
-<li>Rust 对泛型有很强的支持，而 Go （目前）却没有。</li>
-<li>Rust 受到函数式编程世界的强烈影响，包括从 Haskell 的 typeclasses 中提取的类型系统。Go 有一个更简单的类型系统，使用接口进行基本的泛型编程。</li>
-</ul>
-<h2>Rust traits 与 Haskell typeclasses 相比如何？</h2>
-<p>Rust traits 类似于 Haskell 的 typeclasses，但目前还没有那么强大，因为 Rust 不能表达更高类型的类型。Rust 的关联类型等同于 Haskell 类型族。</p>
-<p>Haskell typeclasses 和 Rust traits 之间的一些具体区别包括：</p>
-<ul>
-<li>Rust traits 有一个隐含的第一个参数，叫做<code>Self</code>。Rust 中的<code>trait Bar</code>对应于 Haskell 中的<code>class Bar self</code>，而 Rust 中的<code>trait Bar&lt;Foo&gt;</code>对应于 Haskell 中的<code>class Bar foo self</code>。</li>
-<li>Rust 中的“Supertraits”或“superclass constraints”被写成<code>trait Sub: Super</code>，而 Haskell 中的为<code>class Super self =&gt; Sub self</code>。</li>
-<li>Rust 禁止无主实例，导致 Rust 中的一致性规则与 Haskell 不同。</li>
-<li>Rust 的<code>impl</code>解析在决定两个<code>impl</code>是否重叠或在潜在的<code>impl</code>之间进行选择时，会考虑相关的<code>where</code>条款和特质约束条件。Haskell 只考虑<code>instance</code>声明中的约束，不考虑其他地方提供的任何约束。</li>
-<li>Rust 的 traits 的一个子集（<a href="https://github.com/rust-lang/rfcs/blob/master/text/0255-object-safety.md" rel="noopener noreferrer">"对象安全"</a>的 traits）可以通过 trait 对象用于动态调度。同样的功能在 Haskell 中通过 GHC 的“ExistentialQuantification”可用。</li>
-</ul>
-<h1>Documentation</h1>
-<h2>为什么 Stack Overflow 上有这么多 Rust 的答案是错误的？</h2>
-<p>Rust 语言已经存在了很多年，在 2015 年 5 月才达到 1.0 版本。在这之前的时间里，语言发生了很大的变化，而 Stack Overflow 的一些答案是在语言的旧版本时给出的。</p>
-<p>随着时间的推移，越来越多的答案将提供给当前的版本，从而改善这个问题，因为过时的答案的比例减少了。</p>
-<h2>我在哪里报告 Rust 文档中的问题？</h2>
-<p>你可以在 Rust 编译器<a href="https://github.com/rust-lang/rust/issues" rel="noopener noreferrer">issue tracker</a>上报告 Rust 文档中的问题。请务必先阅读<a href="https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md#writing-documentation" rel="noopener noreferrer">贡献指南</a>。</p>
-<h2>我如何查看我的项目所依赖的库的 Rustdoc 文档？</h2>
-<p>当你使用<code>cargo doc</code>为你自己的项目生成文档时，它也会为活动的依赖版本生成文档。这些文档会被放到你的项目的<code>target/doc</code>目录下。使用<code>cargo doc --open</code>来打开这些文档，或者自己打开<code>target/doc/index.html</code>。</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【成都招聘】试试了解Fusotao吧</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=dbb78e3b-5ccd-486f-9fbd-bd5d2f754d5a">
-<div class="article-summary-box-inner">
-<span><p>前言<br>
-做这件事有段时间了，经历了一阵失去投资，团队狗带，现在仿佛又能看到黎明啦。</p>
-<p>我们是干什么的？<br>
-不提每日新增流行词汇，其实就是做一个可信的订单簿交易系统的，也可以说是去信任化的订单簿交易系统。与传统的中心化交易系统不同，同时也不是现在流行的swap dex形式，而是在链下完成撮合交易，再将交易结果证明并发送到链上。这样做的好处都有啥？对比swap，订单簿模型有定价权，而且对普通人而言更熟悉，手续费也低很多，因为有类似原生layer2的等价概念存在；对比中心化交易所而言，有相对高非常多的安全保障，因为代币再也不用转给随时可能跑路的交易所了。</p>
-<p>我们需要什么样的人？<br>
-目前国内已知大概有3个团队在做类似的事情。我们还没开始做任何宣传，知名度低得可怜，但在技术上我们已经几乎走完PoC的阶段了。一件事是否能成功，除了技术因素，还有许许多多场外因素，所以加入一个创业团队是比较有风险的事，在说任何技术要求之前，希望大家能结合自身实际情况理性客观地看待，尤其是抗风险能力较弱的同学（当然人生有时也需要一点冲动和激情）。
-再说说细节，我们当然在做区块链相关的东西，技术栈基于substrate/rust，如果不是特别熟也没有关系，因为这方面问题已经不大了，但是至少要求rust很熟悉了，因为我自己写rust就是个新手，常常会发现写得不够rusty的代码并且进行重构。有一部分遗留系统来自Old Java/Clojure，如果是写Java/Clojure出生的同学同时又转而写Rust就更欢迎了。我们在不少地方都对数据结构和相关的算法优化有一定要求，计算机科班毕业的同学可能在这方面会略有优势。如果您是精通密码学的奇人，同时也对我们做的事感兴趣，请给我个机会让来主动拜访您并诚邀加入！</p>
-<p>薪资谈判<br>
-如果是精通密码学的大佬：薪资面聊<br>
-否则：25k + 代币激励</p>
-<p>联系方式<br>
-<a href="https://github.com/uinb" rel="noopener noreferrer">github</a><br>
-邮箱 aGVsbG9AdWluYi50ZWNo</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">远程办公，不限地域，缴纳社保公积金，周末双休，告别 996，拒绝 007，Nervina Labs 欢迎你！</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=fa073c50-e087-46f4-bd58-3140e3999eb6">
-<div class="article-summary-box-inner">
-<span><p>最近区块链世界里面发生了几件大事，一是 Elon Musk 宣布15亿美元购入 Bitcoin 作为公司储备资产；二是迈阿密市长提议使用比特币作为该市的税收和公务员工资支付手段；三是 Visa 开始接受 Bitcoin 在其支付网络上进行结算。这几件事情说明区块链叙事开始加速走向主流世界，也说明是时候认真考虑这个行业的职业机会了。毕竟美国的科技和政治精英并不是傻子，他们押注这个行业说明它“有点东西”。</p>
-<h2>1. 价值观</h2>
-<p>不得不承认，自中本聪在2009年初通过比特币创世块写下反传统金融体系的宣言开始，指引区块链前进的根本动力就一直是其价值观。如果你也认可以下的价值观，那说明你适合在这个行业生存。</p>
-<p><strong>Can't be evil.</strong></p>
-<p>谷歌的“Don't be evil”不作恶原则是远远不够的，因为是否作恶的决定权仍然在中心化权威手里。不作恶成为是一种施舍，而不是一种约束。而区块链世界则强调开源、自由 fork、去中心。代码一旦完成即自主运行。即使是中本聪也无法私自增发比特币，因为它从协议层就限制了作恶的可能性。</p>
-<p><strong>Permissionless.</strong></p>
-<p>无需许可是区块链世界的最高原则，任何人不需要第三方的授权就可以操作区块链。它保障了任何人都有相同的机会使用区块链上的信息、金融等服务，同时为不同服务之间的相互组合提供了可能性。对比来说，微信、支付宝互相封锁，Tw、Fb等社交平台随意禁言。他们不但违背了互联网的初衷，也扼杀了思想交流和技术创新。</p>
-<p><strong>Don't trust, verify.</strong></p>
-<p>你不应该相信任何人声明的事情、提供的服务、做出的承诺，你需要自己确认。正如这篇文章的所有观点你都不应该选择直接相信，你应该自己去考证。</p>
-<h2>2. 对古典互联网的革命性优势</h2>
-<p>互联网世界发展到现在遇到了哪些无法解决的问题？第一，大公司的数据霸权。南山必胜客刚刚打赢了“好友关系不属于个人隐私”的官司，用户在大公司面前形同裸奔。同时用户没有平台迁移的权利，我不爽，但是我还离不开，因为我的社交关系和历史都沉淀在这个平台上。第二，算法霸权。大公司利用算法优势对用户进行差别对待，精准杀熟。第三，平台割裂。平台越大，平台间的鸿沟越大。不同平台间的协作难度也越大。同一个小程序要在微信、支付宝各做一份，同一个用户要在不同的应用中分别注册。</p>
-<p>区块链世界采用了完全不同的用户-服务范式。所有的服务都是以用户为中心进行整合，这个范式也被称为“用户端集成”。这个范式一举打破了传统互联网产品的壁垒，数据、资产、关系都掌握在用户手中，服务商围绕着用户提供服务。想象一个这样的互联网世界：你的好友关系在各个软件平台中共享，你的数据由自己掌握，即使服务商跑路了，你的资产和数据也不会丢失。这样的一个新的互联网世界对古典互联网世界显然具有维度上的优势。</p>
-<h2>3. 那么问题是什么</h2>
-<p>区块链这么厉害，为什么到现在还只有炒币这一个场景呢。个人认为区块链和主流应用结合主要面临两方面的障碍。</p>
-<p>第一是用户门槛高、体验差。创建一个账户需要理解私钥、地址、交易、手续费等概念，创建过程涉及助记词、长密码、助记词校验等流程，对普通人绝对是劝退模式。做过互联网产品的都知道，一个不合理的按钮位置都会降低用户留存，而区块链的用户体验是灾难级别的。做个上链业务居然要平均半分钟才有成功失败的反馈。</p>
-<p>第二是收费模型极不友好。用户早已习惯互联网产品免费使用、付费升级或者广告收费的方式。而区块链应用则不然，做任何业务都必须用户付费，而且<strong>必须购买区块链代币才能付费</strong>。有这个障碍存在，大众用户绝对进不来，所以这两年区块链世界内卷越来越严重。</p>
-<h2>4. 怎么解决</h2>
-<p>终于可以介绍一下我们是谁，以及在做什么了。我们是原 <a href="https://www.nervos.org" rel="noopener noreferrer">Nervos</a> 应用开发工程师团队独立成立的区块链应用公司 <strong>Nervina Labs</strong>，Nervina 是个合成词，Nervos + China。我们的使命是在中国市场进行商业合作、技术服务和产品开发工作。关于 Nervos 公链多说无益，大家秉持区块链 Don't trust, verify 的精神可以自己翻一翻 <a href="https://github.com/nervosnetwork/" rel="noopener noreferrer">GitHub</a> 和媒体报道。这里重点说说我们的产品和业务内容。我们认为 Nervos 可以很好地解决前面提出的那两个问题，从而让区块链出圈，进入主流互联网世界。</p>
-<p>首先，比特币、以太坊等传统的区块链平台在账户层只支持硬编码的特定密码学算法，用户必须创建并自行管理账户的公私钥对，因此认知和使用门槛非常高。而 Nervos 采用了原生的账户抽象方案，支持任意的密码学算法，包括在互联网世界已经应用很久的 RSA、P256、和 SM2 等算法。大家熟悉的 https 协议、email 协议、iOS/Android 的生物识别模块、甚至护照身份证等都支持相应的密码学算法。所以我们可以把它们拿来在 Nervos 上创建和管理账户，这样用户操作区块链的体验和操作互联网应用基本没有区别。</p>
-<p>其次，收费模型方面尽管 Nervos 默认也是需要原生代币作为手续费，但 Nervos 允许服务商代付，并且在链上凭证转移的时候可以把小额手续费一起转移。从用户角度上看，大家完全不需要理解什么叫手续费，甚至不需要知道业务发生在区块链上。更大的好处是用户不需要购买区块链代币，规避了合规风险。</p>
-<p>我们的今年主推的产品是为互联网企业准备的“+区块链”方案，帮助对区块链有一定了解的头部互联网公司实现部分业务向区块链做迁移。我们将帮助互联网公司改造现有的会员卡、论坛勋章、电子票务、商品预售、粉丝经济等等生态，用区块链为更多的大众用户提供价值。</p>
-<h2>5. 收入</h2>
-<p>不谈收入只谈理想就是耍流氓。好在区块链是最不缺钱的行业，我们会提供和一线大厂相一致的薪资水平，包括五险一金等各方面国家规定的福利待遇一个不少。但对于很多人来说，单纯的线性工资是远远不够在一线城市安身立命的。大厂的股票期权，创业公司的干股才是大家上升到富裕阶层的砝码。在我厂工作可以有两个获得非线性收入的机会，我们分别谈谈。</p>
-<p>首先是期权。我厂会在内部推动项目单独融资进而独立发展，项目参与者会获得相应的期权。在区块链世界中，优秀项目从创立到股份/期权获得实际价值的周期要远远短于传统企业上市的周期。拼夕夕光速发展也走了3年才上市，在区块链世界中几乎只要开始对外运营其期权、股份就立刻有了二级市场，可以完成价值兑现。从项目融资到“上市”中间基本上就是一个开发周期。</p>
-<p>其次是行业信息优势。“康波周期理论”告诉我们人生一般也就一到两次大的机遇，抓住的话就可以完成阶层跨越。上一波机遇大家都知道是买房，而这一波应该就是区块链了。尽管从圈外人看比特币上涨到6万美金一个已经和普通人无缘了，但只有你站在这个圈子里面你才会对整个浪潮获得全面的感知，从而得出自己理性的结论。所谓“链圈一日、人间一年”，区块链世界进化速度极快，你待在这个圈子里面会发现无数的机会，比特币只是其中名声最大的一个而已。</p>
-<h2>6. 职业发展</h2>
-<p>我们一直戏谑 Nervos 为链圈的黄埔军校，因为确实为圈子输送了很多技术和市场人才。时不时会遇到一个圈内的 panel 四个嘉宾三个是我们的老员工。究其原因，Nervos 生态会更关注诸如“区块链究竟会带来什么价值”、“区块链的长期发展必须解决什么核心问题”等这种原则性问题而不是短平快地追逐最新热点。所以在我厂绝对不用担心只能当工具人而学不到真东西。在 Nervos 生态下大家接触的一定是业界最前沿的技术和产品。</p>
-<p>Nervina Labs 对待人才管理有三个关键词：开放、自驱和涌现。开放指的是所有产品所有部门之间绝大多数信息都是互相开放的，并且几乎所有的代码库都是开源的，员工可以使用私人的 github 账号贡献代码。自驱是我们把每个员工当做对自己负责任的成年人看待，相信自己可以管理好自己的时间，不需要用严格的打卡、kpi 等制度进行管理。涌现则是指除了自上而下的任务以外，我们提倡员工自己为生态添砖加瓦。你认为整个区块链生态缺什么就可以提出来方案、预算、招聘需求，我们内部讨论通过后就给你资源让你去实现。这也是人才晋升的重要通道。你甚至可以提出融资需求，拉团队出去创业，我们提供必要的启动资金。这种模式只有在区块链行业才有可能，因为从公链整体的角度看，所有的生态企业都会带来价值，最优的模式就是由社区自发维护整个生态的发展。</p>
-<h2>7. 工作环境与强度</h2>
-<p>我们是<strong>100% 远程工作</strong>。沟通工具主要是 G Suite、GitHub、Notion 和 Telegram。既然是远程，也就没什么打卡、加班，全凭自觉。我们强调交付，产品和技术充分沟通后大家约定交付时间，按照交付时间和质量评估绩效。因此自驱型的人最适应我厂的工作。</p>
-<p>作为团队的传统，我们每年计划有两次封闭开发的“团建”活动。一般会选在像青岛、杭州等风景饮食俱佳的城市，包下一个民宿或者别墅，用一周左右时间大家聚在一起冲刺开发产品。大家远程久了通过一两次这种活动加深了解促进协作效率，事实证明很有效果。</p>
-<h2>8. 投简历 or 交朋友</h2>
-<p>区块链是我们这代人肉眼可见的一次绝佳的机遇，不论你是否考虑我厂，我都建议你认真关注一下这个行业。我是 Cipher，很乐意交朋友，愿意回答你关于区块链的任何问题。或者你恰巧对我们感兴趣，对以下的职位感兴趣，你可以直接发邮件给我你的简历，我们聊聊看。
-招聘岗位
-rust开发工程师
-岗位职责：1、负责智能合约的开发及设计；2、负责区块链业务系统分析与设计工作；3、负责智能合约代码测试、运行和维护。任职要求：1、计算机相关专业本科及以上学历，3年以上工作经验；2、熟练掌握 C/C++、Rust 等系统开发语言至少一种，至少有过两年相关开发经验；3、对数据结构和算法，对密码学，安全协议和加密算法有研究者优先；4、优秀的英语文档撰写与阅读能力者优先；5、了解区块链，有合约开发经验更佳。
-附加信息：周末双休
-联系方式：15005209448 (微信同)
-邮箱：wangmeng@nervina.io</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【全职远程】15K-30K/硅谷无码AI团队招/后端开发工程师/Java or Scala</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=6c2bed71-6adf-45ac-bd60-904427c5c51c">
-<div class="article-summary-box-inner">
-<span><p>公司简介
-我们是一个刚刚成立在上海的创业公司。创始人在硅谷，全员远程，致力于打造下一代无码AI数据产品，技术氛围浓厚。目前和国内一家知名CDP平台厂商合理推出了第一版无代码机器学习预测平台，帮助企业实现运营的智能化。</p>
-<p>工作职责
-1、负责机器学习平台的后端技术架构;</p>
-<p>2、负责机器学习平台的后端代码实现及单元测试；</p>
-<p>3、负责编写技术设计文档、API文档。</p>
-<p>任职要求
-1、计算机相关专业，本科及以上学历；</p>
-<p>2、 熟练使用Java 或 Scala 开发，5年以上的开发经验；</p>
-<p>3、熟练使用SprintBoot，熟悉相关的生态和使用方法；</p>
-<p>4、有大数据处理经验优先。</p>
-<p>关于沟通
-1、使用飞书作为沟通和文档工具；</p>
-<p>2、每天上午 9 点（冬令时，夏令时是 上午 8:30 ）会有简单的同步；</p>
-<p>3、每天写日报，说明任务的进度，以及发现哪些问题和需要什么帮助；</p>
-<p>4、每个 Sprint 会花时间拆解 Story 和分配任务，需要各自分析出各个需求点和关键点，发现风险和不确定的地方及早确认。</p>
-<p>薪资待遇
-15K-30K，全职（不接受兼职），提供五险一金。</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">Mike Tang 张汉东 老油条各位大佬请进，素数多线程问题</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=b10b7a68-e2bf-42b6-a583-ef99478e50d3">
-<div class="article-summary-box-inner">
-<span><p>各位大佬：</p>
-<p>昨天腾讯视频聊的比较开心，留了一个尾巴。我现在把我的困惑放出来，大家尽情拍砖。</p>
-<p>这个是我写的文章，文章分了两章 ：</p>
-<p><a href="https://github.com/sunnyrust/rustBible/blob/master/books/6.2.md" rel="noopener noreferrer">6.2 多线程——channel</a></p>
-<p><a href="https://github.com/sunnyrust/rustBible/blob/master/books/6.3.md" rel="noopener noreferrer">6.3 多线程——future</a></p>
 </span>
 </div>
 </a>
@@ -2202,7 +1950,7 @@ documents are available at https://github.com/LYH-YF/MWPToolkit.
 </article>
 <article>
 <details class="article-expander">
-<summary class="article-expander__title">Imposing Relation Structure in Language-Model EmbeddingsUsing Contrastive Learning. (arXiv:2109.00840v1 [cs.CL])</summary>
+<summary class="article-expander__title">Imposing Relation Structure in Language-Model Embeddings Using Contrastive Learning. (arXiv:2109.00840v1 [cs.CL])</summary>
 <a class="article-summary-link article-summary-box-outer" href="http://arxiv.org/abs/2109.00840">
 <div class="article-summary-box-inner">
 <span><p>Though language model text embeddings have revolutionized NLP research, their
@@ -2285,7 +2033,7 @@ methods when modality-noise or modality-missing exists.
 </article>
 <article>
 <details class="article-expander">
-<summary class="article-expander__title">MultiEURLEX - A multi-lingual and multi-label legal document classification dataset for zero-shot cross-lingual transfer. (arXiv:2109.00904v1 [cs.CL])</summary>
+<summary class="article-expander__title">MultiEURLEX -- A multi-lingual and multi-label legal document classification dataset for zero-shot cross-lingual transfer. (arXiv:2109.00904v1 [cs.CL])</summary>
 <a class="article-summary-link article-summary-box-outer" href="http://arxiv.org/abs/2109.00904">
 <div class="article-summary-box-inner">
 <span><p>We introduce MULTI-EURLEX, a new multilingual dataset for topic
@@ -3040,7 +2788,7 @@ state-of-the-art results.
 </ul>
 </section>
 <footer>
-<time id="build-timestamp" datetime="2021-09-03 01:51:21.350609611 UTC">2021-09-03 01:51:21 UTC</time>
+<time id="build-timestamp" datetime="2021-09-04 01:51:47.782090445 UTC">2021-09-04 01:51:47 UTC</time>
 <span><a class="footer-link" href="https://github.com/NotCraft/NotFeed"> notfeed 0.2.1</a></span>
 </footer>
 <script src="index.js"></script>
