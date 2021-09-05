@@ -12,13 +12,82 @@
 <body>
 <section class="daily-content">
 <h2 class="daily-heading">
-<time datetime="2021-09-04T01:51:47.746750354Z">09-04</time>
+<time datetime="2021-09-05T01:53:44.783508817Z">09-05</time>
 </h2>
 <ul class="sources card">
 <li class="source">
 <section>
 <h3 class="source-name">Rust.cc</h3>
 <section class="articles-per-source">
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">[已解决]使用rocket框架时sqlite出现的问题</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=089f8f06-780e-409a-952e-fa39c2e79dc6">
+<div class="article-summary-box-inner">
+<span><p>其实应该是diesel的问题
+之前sqlite缺少lib我是通过这个博客解决了问题
+<a href="https://blog.itdevwu.com/post/915/" rel="noopener noreferrer">解决使用Rust与Sqlite3交互时出现LNK1181错误（Diesel 或 rusqlite）</a>
+但是后面的cargo run 阶段又出现了</p>
+<pre><code>sqlite3.lib : warning LNK4272:库计算机类型“x86”与目标计算机类型“x64”冲突
+          D:\Project\Private\point_plan\target\debug\deps\point_plan.exe : fatal error LNK1120: 60 个无法解析的外部命令
+</code></pre>
+<p>我明明用的是64位指令编译64位sqlite3.def得到lib的，为啥还会出现这种问题？
+麻烦弄过的这方面的朋友指点下</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust日报】2021-09-04</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=e3c58130-184d-482b-b081-168c54694384">
+<div class="article-summary-box-inner">
+<span><h3>cURL 中的 Rust</h3>
+<p>Allen Wyma 与 cURL 的原作者 Daniel 谈论在 cURL 中使用 Rust。</p>
+<ul>
+<li>cURL 是一个命令行工具和库，用于通过 URL 传输数据。</li>
+<li>cURL 及其数据传输核心 libcurl 都是用 C 编写的，众所周知，这不是内存安全的。</li>
+<li>虽然几乎不可能将其重写为另一种语言，但提供一个用 Rust 编写的第三方库可能会更进一步。</li>
+</ul>
+<p><a href="https://rustacean-station.org/episode/035-daniel-stenberg/" rel="noopener noreferrer">文章链接</a>，https://rustacean-station.org/episode/035-daniel-stenberg/</p>
+<h3>NoProto：灵活、快速和紧凑的序列化和rpc</h3>
+<ul>
+<li>
+<p>轻量</p>
+<ul>
+<li>零依赖</li>
+<li>支持no_std，WASM</li>
+<li>最紧凑的非编译存储格式</li>
+</ul>
+</li>
+<li>
+<p>稳定...</p>
+</li>
+</ul>
+<p><a href="https://github.com/only-cliches/NoProto" rel="noopener noreferrer">Gitlab 链接</a>，https://github.com/only-cliches/NoProto</p>
+<h3>gradient介绍</h3>
+<p>用于玩颜色渐变的命令行工具</p>
+<p>Features:</p>
+<ul>
+<li>许多预设渐变。</li>
+<li>自定义渐变。</li>
+<li>从 SVG 和 GIMP 渐变 (ggr) 文件中读取渐变
+...</li>
+</ul>
+<p><a href="https://github.com/mazznoer/gradient-rs" rel="noopener noreferrer">Gitlab 链接</a>，https://github.com/mazznoer/gradient-rs</p>
+<hr>
+<p>From 日报小组 <a href="https://rustcc.cn/blog_with_author?author_id=dd4a77ca-2042-459e-901a-b8f9bfeb7db0" rel="noopener noreferrer">TOM</a></p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
+<li>[微信公众号：Rust语言中文社区](https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d88</li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
 <article>
 <details class="article-expander">
 <summary class="article-expander__title">argh：基于 derive 宏且对二进制体积进行优化的命令行解析工具</summary>
@@ -215,7 +284,6 @@ async fn main() {
         axum_server::bind(addr).serve(app).await.unwrap();
     }
 }
-
 </code></pre>
 <pre><code>//service.rs
 use crate::base16;
@@ -867,38 +935,6 @@ async fn main() {
 <a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=ae7f2822-173b-45ba-9013-e5cb4e286810">
 <div class="article-summary-box-inner">
 <span><p>rustcc.cn见证了RustDesk一路的成长，在此接受了很多的鼓励，我受益匪浅。虽然一直都是一个人战斗，可却时刻期盼着优秀的你加入。虽然公司实体还没有注册完成，但是RustDesk已经收获两家投资机构的投资意向，一家国内，一家国外，总共超过千万人民币。如果你也像投资人一样看好RustDesk这个项目，能够理解他的未来发展潜力，请邮件联系我，并附上你的简历。谢谢，期盼我们一起成长。</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">cfg-rs v0.2.3，rust配置库</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=529bbd2c-aed1-46e7-a5c3-ede7283c0c5d">
-<div class="article-summary-box-inner">
-<span><p>和config库的区别</p>
-<ul>
-<li>支持占位符表达式，可以简化配置设计。</li>
-<li>不基于serde，设计了独立的trait用来做配置和struct的映射，提供自动推导功能。</li>
-<li>支持可更新值类型RefValue，在配置刷新时自动更新。不需要全局Configuration实例。</li>
-<li>配合占位符表达式，提供随机值获取。</li>
-</ul>
-<p>详情请访问
-https://docs.rs/cfg-rs
-https://github.com/leptonyu/cfg-rs</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">分享一个vim for rust-lang配置，支持多种开发语言。</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=3c62e530-3aab-4111-925f-83e0338d3799">
-<div class="article-summary-box-inner">
-<span><p>https://github.com/wandercn/go-ide-vim.conf.git
-有兴趣vim流的可以试试，我自己一直用着还可以。</p>
 </span>
 </div>
 </a>
@@ -2788,8 +2824,8 @@ state-of-the-art results.
 </ul>
 </section>
 <footer>
-<time id="build-timestamp" datetime="2021-09-04 01:51:47.782090445 UTC">2021-09-04 01:51:47 UTC</time>
-<span><a class="footer-link" href="https://github.com/NotCraft/NotFeed"> notfeed 0.2.1</a></span>
+<time id="build-timestamp" datetime="2021-09-05 01:53:44.830782647 UTC">2021-09-05 01:53:44 UTC</time>
+<span><a class="footer-link" href="https://github.com/NotCraft/NotFeed"> notfeed 0.2.3</a></span>
 </footer>
 <script src="index.js"></script>
 </body>
