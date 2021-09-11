@@ -12,13 +12,182 @@
 <body>
 <section class="daily-content">
 <h2 class="daily-heading">
-<time datetime="2021-09-10T01:54:26.787753978Z">09-10</time>
+<time datetime="2021-09-11T01:50:00.016439924Z">09-11</time>
 </h2>
 <ul class="sources card">
 <li class="source">
 <section>
 <h3 class="source-name">Rust.cc</h3>
 <section class="articles-per-source">
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">非凸科技 ｜招聘内推公告</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=07f3c034-3b48-4f41-bb02-cdda2f8c25f9">
+<div class="article-summary-box-inner">
+<span><p>一、公司介绍</p>
+<p>上海非凸智能科技有限公司（简称“非凸科技”）成立于2018年， 是一家国内领先的智能算法和交易系统服务公司。</p>
+<p>公司以“科技赋能交易，打造全球领先的交易效率管理专家”为愿景，专注于智能算法交易领域的研究和开发，目前已开发出一系列产品：非凸智能算法V4.0、非凸智能交易系统V3.0、非凸智能“T+0”策略V1.0。服务于业内知名客户中泰证券、华鑫证券、华泰证券等。</p>
+<p>公司团队来自知名投资机构及交易系统服务商，拥有丰富的产业经验和技术能力，潜心打造智能算法交易平台，在原有基础上全面升级到互联网新一代技术架构，结合机器学习等新兴技术，逐步完成各类交易算法的研发迭代，正持续为券商、量化私募等众多大型金融机构提供优质的算法服务。</p>
+<p>二、内推奖励</p>
+<p>奖励20,000元/位</p>
+<p>三、奖励机制</p>
+<p>分两个阶段获得推荐奖励：
+阶段1:候选人入职满2周，获得50%奖励；
+阶段2:候选人入职满半年，获得另50%奖励；
+如果候选人没有入职半年，则不发放阶段2的奖励。</p>
+<p>四、内推优势：</p>
+<p>候选人进入内推通道，不仅可以从海量简历中脱颖而出，还可以免笔试直通面试！</p>
+<p>五、9月内推岗位：</p>
+<p>Rust开发工程师
+【岗位职责】
+1.设计并开发基于RUST的高性能，低时延算法交易系统；
+2.设计并开发数据处理平台，监控运维平台；
+3.设计并开发面向客户的高可用交易工具等；
+4.设计并开发策略相关的回测平台。
+【岗位要求】
+1.本科及以上学历（985优先）。
+2.编程基础扎实，具有良好的计算机理论基础；
+3.熟练掌握Linux操作，性能分析，具备Rust/C++/Java/Go丰富开发经验，熟悉常用的设计模式，有分布式相关经验加分；
+4.有研发高性能，低时延系统经验加分；
+5.对技术充满热情，思考深入。自我驱动，能快速学习新鲜事物。</p>
+<p>六、内推方式</p>
+<p>1.提交简历方式：
+·投递邮箱：recruit@ft.tech
+·邮件主题：[应聘人]+[应聘岗位]+[推荐人]
+·重复推荐以收到简历时间顺序为准</p>
+<p>2.如果简历通过，安排笔试/面试</p>
+<p>还在等什么？快加入非凸内推吧！</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust日报】2021-09-10 Rust 1.55 稳定版发布</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=c36da117-d84e-42a0-9304-b02fe6f27df1">
+<div class="article-summary-box-inner">
+<span><h1>Rust 1.55 稳定版发布</h1>
+<p>Rust 1.55 是 2021 Edition 正式发布之前的倒数第二个版本，此版本主要更新如下：</p>
+<ul>
+<li>range 操作符支持半开语法</li>
+</ul>
+<pre><code>match x as u32 {
+      0 =&gt; println!("zero!"),
+      1.. =&gt; println!("positive number!"),
+}
+</code></pre>
+<ul>
+<li>极大的提高浮点数的解析速度</li>
+</ul>
+<p>采用新的 Eisel-Lemire 算法解析浮点数，不仅在速度上有很大提升，之前一些解析失败的边缘 case 也全都修复了</p>
+<ul>
+<li>
+<p>cargo 构建的时候不再重复报 Error</p>
+</li>
+<li>
+<p>细化 io::ErrorKind</p>
+</li>
+</ul>
+<p>使用 ErrorKind::Other 来区分标准库之外产生的 io Error，标准库之内不会再产生 ErrorKind::Other 的 Error。标准库未来暂未分类的 Error 类型，统一使用 Uncategorized。</p>
+<ul>
+<li>数组增加 map() 方法</li>
+</ul>
+<p>数组的 map() 方法返回的依然是数组，对数组来说更方便！</p>
+<ul>
+<li>稳定 ops::ControlFlow</li>
+</ul>
+<p>这是未来要稳定的 <code>try trait v2</code> 的一部分。</p>
+<pre><code>pub enum ControlFlow&lt;B, C = ()&gt; {
+    Continue(C),
+    Break(B),
+}
+</code></pre>
+<p>标准库里面很多地方都用到了这个类型，很有用。</p>
+<ul>
+<li><code>cargo clippy --fix</code> 可以自动帮你修复 clippy 的警告</li>
+</ul>
+<p>这个非常赞！</p>
+<p>链接：<a href="https://blog.rust-lang.org/2021/09/09/Rust-1.55.0.html" rel="noopener noreferrer">https://blog.rust-lang.org/2021/09/09/Rust-1.55.0.html</a></p>
+<h1>纪念 Anna Harren</h1>
+<p>Anna Harren 是第一个将 Rust 的 ::&lt;&gt; 语法命名为 Turbofish 的人。</p>
+<p>Rust 官方发布 1.55 的时候在博客里还特意纪念了最近刚去世的 Anna Harren。</p>
+<p>链接：<a href="https://twitter.com/garblefart/status/627886036211900416" rel="noopener noreferrer">https://twitter.com/garblefart/status/627886036211900416</a></p>
+<h1>Rustaceans 准则</h1>
+<p>Niko 发布了一篇博客，总结出 Rustaceans 的准则，比如其中提到：</p>
+<p><strong>Rust empowers by being…</strong></p>
+<ul>
+<li>⚙️ Reliable: “if it compiles, it works”</li>
+<li>🐎 Performant: “idiomatic code runs efficiently”</li>
+<li>🥰 Supportive: “the language, tools, and community are here to help”</li>
+<li>🧩 Productive: “a little effort does a lot of work”</li>
+<li>🔧 Transparent: “you can predict and control low-level details”</li>
+<li>🤸 Versatile: “you can do anything with Rust”</li>
+</ul>
+<p><strong>How to Rustacean</strong></p>
+<ul>
+<li>💖 Be kind and considerate</li>
+<li>✨ Bring joy to the user</li>
+<li>👋 Show up</li>
+<li>🔭 Recognize others’ knowledge</li>
+<li>🔁 Start somewhere</li>
+<li>✅ Follow through</li>
+<li>🤝 Pay it forward</li>
+<li>🎁 Trust and delegate</li>
+</ul>
+<p>链接：<a href="https://smallcultfollowing.com/babysteps//blog/2021/09/08/rustacean-principles/" rel="noopener noreferrer">https://smallcultfollowing.com/babysteps//blog/2021/09/08/rustacean-principles/</a></p>
+<p>--
+From 日报小组 Folyd, 侯盛鑫</p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
+<li><a href="https://rustcc.cn/article?id=c36da117-d84e-42a0-9304-b02fe6f27df1" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">rust 代码热更，只更新函数方法内的逻辑</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=d2bf5fb8-f633-48c4-98bc-b1cdbf6f453a">
+<div class="article-summary-box-inner">
+<span><p>rust代码热更有哪些方案？</p>
+<p>哪种方案靠谱些？</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Arc<tokio::runtime::Runtime> 如何shutdown</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=74332814-96e8-4381-8785-8647742d6f54">
+<div class="article-summary-box-inner">
+<span><ul>
+<li>rust初级使用者</li>
+<li>我在定义一个结构体, 其中一个成员为 <strong>pool: Arc<a rel="noopener noreferrer">tokio::runtime::Runtime</a></strong></li>
+<li>我希望在某个地方销毁这个pool, 使用 ** runtime.shutdown_timeout **</li>
+<li>但是上述会报错:</li>
+</ul>
+<pre><code>error[E0507]: cannot move out of an `Arc`
+  --&gt; kvstore/src/tikv.rs:57:17
+   |
+57 |                 pool.shutdown_timeout(Duration::from_millis(10));
+   |                 ^^^^ move occurs because value has type `Runtime`, which does not implement the `Copy` trait
+
+error: aborting due to previous error; 1 warning emitted
+
+</code></pre>
+<ul>
+<li>能否帮我解决下问题, 多谢</li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
 <article>
 <details class="article-expander">
 <summary class="article-expander__title">【标准库】✨ Rust v1.55 中文版更新了</summary>
@@ -242,202 +411,6 @@ let string2 = "xyz";
 <a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=6d630089-a902-4eca-a98c-86c6e72d70f6">
 <div class="article-summary-box-inner">
 <span><p>rust GUI太难了</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">rust 调用c返回的动态数组</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=a048c6cc-cbdd-4965-80d7-5aa0097678a7">
-<div class="article-summary-box-inner">
-<span><p>C 使用malloc生成一个动态长度的数组，具体类型可知。C如何传递给rust 才能使rust知道该数组的长度和地址？</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">多地招聘 ｜安全性极高的Rust，想来学吗？</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=a48abd3f-43dc-4456-bade-0f94ccfa72b4">
-<div class="article-summary-box-inner">
-<span><p>非凸科技（https://ft.tech）正成为国内金融市场智能投资交易平台的引领者，在原有基础上全面升级到互联网新一代技术架构，采用Rust构建智能算法交易平台，逐步迭代，持续为券商、量化私募等众多大型金融机构提供优质的算法服务。</p>
-<p>Rust已经连续五年被开发人员评为“最为喜爱”的编程语言，因为它可以避免某些类型的内存安全错误，能从根本上改善软件漏洞的现状。</p>
-<p>Why Rust？安全、并发、实用，新时代的系统级编程语言。</p>
-<p>高性能: Rust 速度惊人且内存利用率极高。由于没有运行时和垃圾回收，它能够胜任对性能要求特别高的服务，可以在嵌入式设备上运行，还能轻松和其他语言集成。</p>
-<p>可靠性：Rust 丰富的类型系统和所有权模型保证了内存安全和线程安全，让您在编译期就能够消除各种各样的错误。</p>
-<p>生产力：Rust 拥有出色的文档、友好的编译器和清晰的错误提示信息， 还集成了一流的工具——包管理器和构建工具，智能地自动补全和类型检验的多编辑器支持， 以及自动格式化代码等。</p>
-<p>让Rust声名远播的优点还包括：提供C和C++的速度和控制能力，同时还提供了其他语言（如Go和Python）的安全性和安全性保证。MSRC将近70％的漏洞归类为内存安全问题，因此消除此类漏洞至关重要。</p>
-<p>现阶段，非凸科技正在寻找行业内优秀的Rust开发工程师，薪资福利超级优厚。关键是团队有很好的Rust开发氛围，Rust大神手把手辅导，助你从Rust新人不断升级。欢迎加入我们！</p>
-<p>公司福利：
-1.提供租房补贴；
-2.日常不间断网红零食、饮料、茶水供给；
-3.不定期组织各部门技术交流学习研讨会，分享心得，互相成长；
-4.团建活动丰富多彩，放松心情缓解疲劳。</p>
-<p>工作地点：北京、上海、成都、深圳、美国加州</p>
-<p>岗位：Rust开发工程师</p>
-<p>岗位职责：
-1.设计并开发基于RUST的高性能，低时延算法交易系统；
-2.设计并开发数据处理平台，监控运维平台；
-3.设计并开发面向客户的高可用交易工具等；
-4.设计并开发策略相关的回测平台。</p>
-<p>岗位要求：
-1.本科及以上学历（985优先）。编程基础扎实，具有良好的计算机理论基础；
-2.熟练掌握Linux操作，性能分析，具备Rust/C++/Java/Go丰富开发经验，熟悉常用的设计模式，有分布式相关经验加分；
-3.有研发高性能，低时延系统经验加分；
-4.对技术充满热情，思考深入。自我驱动，能快速学习新鲜事物。</p>
-<p>岗位薪酬：Base 30K-60K+，有期权激励</p>
-<p>投递邮箱：recruit@non-convex.com
-联系人加微信：SweeneyTodd333333</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【Rust日报】2021-09-07</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=fd95c63b-08d3-468a-9743-82feb56df3f2">
-<div class="article-summary-box-inner">
-<span><h2>【大家的项目】 <code>Poem-openapi</code> v0.2.1 发布</h2>
-<p><a href="https://www.reddit.com/r/rust/comments/pjhoiu/poemopenapi_021_released/" rel="noopener noreferrer">Poem-openapi 0.2.1 released!</a></p>
-<p><strong>Poem-openapi</strong>:</p>
-<blockquote>
-<p><code>Poem-openapi</code> 使你能够方便快捷的构建符合 <code>OpenAPIv3</code>标准的应用程序接口; 通过使用过程宏来生成大量样板代码，你将有更多时间和精力来专注于实现更重要的业务逻辑。</p>
-</blockquote>
-<p><strong>功能特性</strong>:</p>
-<ul>
-<li>完全支持 <code>async/await</code>;</li>
-<li>类型安全;</li>
-<li>对<code>Rustfmt</code>用户友好 （过程宏）;</li>
-<li>最小开销;</li>
-</ul>
-<p><strong>示例</strong>:</p>
-<p>代码：</p>
-<pre><code>use poem_openapi::{payload::PlainText, OpenAPI, API};
-
-struct Api;
-
-#[API]
-impl Api {
-    #[oai(path = "/", method = "get")]
-    async fn index(&amp;self, #[oai(name = "name", in = "query")] name: Option&lt;String&gt;) -&gt; PlainText {
-        match name {
-            Some(name) =&gt; format!("hello, {}!", name).into(),
-            None =&gt; "hello!".into(),
-        }
-    }
-}
-
-#[tokio::main]
-async fn main() {
-    poem::Server::bind("127.0.0.1:3000")
-        .await
-        .unwrap()
-        .run(OpenAPI::new(Api).title("hello World").ui_path("/ui"))
-        .await
-        .unwrap();
-}
-</code></pre>
-<p>运行：</p>
-<pre><code>[test@localhost poem-openapi]$ cargo run --example hello_world
-
-[test@localhost poem-openapi]$ curl http://localhost:3000
-hello!
-
-[test@localhost poem-openapi]$ curl http://localhost:3000\?name\=sunli
-hello, sunli!
-</code></pre>
-<p><strong>更多信息</strong>：</p>
-<ul>
-<li>项目地址：<a href="https://github.com/poem-web/poem-openapi" rel="noopener noreferrer">https://github.com/poem-web/poem-openapi</a></li>
-<li>开源声明：<a href="https://rustcc.cn/article?id=334551fe-a8a9-4561-aa63-11987b10e81f" rel="noopener noreferrer">Poem-openapi开源了!</a></li>
-<li>作者信息：<a href="https://github.com/sunli829" rel="noopener noreferrer">油条哥主页</a></li>
-</ul>
-<hr>
-<h2>Relm4 v0.1 发布</h2>
-<p><a href="https://aaronerhardt.github.io/blog/posts/announcing_relm4/" rel="noopener noreferrer">Announcing Relm4 v0.1</a></p>
-<p>在第一个测试版发布大约一个月后，经过无数个小时的工作，作者高兴地宣布Relm4的第一个稳定版本正式发布！</p>
-<p><strong>关于Relm4</strong>：</p>
-<p><code>Relm4</code>是一个受<code>Elm</code>启发并基于<code>gtk4-rs</code>的惯用GUI库。它是一个从头开始构建的<code>relm</code>的新版本，并且兼容<code>gtk4</code>和<code>libadwaita</code>。<code>Relm4</code>的主要目标是生产效率、灵活性、简单性和可维护性。</p>
-<p><strong>功能特性</strong></p>
-<ul>
-<li>支持<code>libadwaita</code>;</li>
-<li>配套书籍<a href="https://aaronerhardt.github.io/relm4-book/book/" rel="noopener noreferrer"><em>GUI development with Relm4</em></a> 已完结;</li>
-<li>新增支持非阻塞IO的消息句柄;</li>
-<li>更多的可复用组件;</li>
-<li>许多其他的改进和修复;</li>
-</ul>
-<p>完整的ChangeLog可以参见：
-<a href="https://github.com/AaronErhardt/relm4/blob/main/CHANGES.md" rel="noopener noreferrer">https://github.com/AaronErhardt/relm4/blob/main/CHANGES.md</a></p>
-<p><strong>更多信息</strong>：</p>
-<ul>
-<li>项目地址：<a href="https://github.com/AaronErhardt/relm4" rel="noopener noreferrer">https://github.com/AaronErhardt/relm4</a></li>
-<li>项目文档：<a href="https://aaronerhardt.github.io/docs/relm4/relm4/" rel="noopener noreferrer">https://aaronerhardt.github.io/docs/relm4/relm4/</a></li>
-<li>参考书籍：<a href="https://aaronerhardt.github.io/relm4-book/book/" rel="noopener noreferrer"><em>GUI development with Relm4</em></a></li>
-</ul>
-<hr>
-<h2>Ockam示例: 构建一个可以安全访问远程私有网络的通道</h2>
-<p><a href="https://github.com/ockam-network/ockam/tree/develop/documentation/use-cases/secure-remote-access-tunnels#readme" rel="noopener noreferrer">Build a secure access tunnel to a service in a remote private network</a></p>
-<p>Ockam是一个支持端到端加密、双向认证、网络安全的Rust和Elixir语言通信库。</p>
-<p>在本篇博文中，作者详细的介绍了如何使用<code>Ockam</code>在Rust中通过约<code>20行</code>代码来构建一个可以安全访问远程私有网络中设备的通道。</p>
-<hr>
-<h2>Skiff: 一门用Rust编写的逐渐类型化的函数式编程语言</h2>
-<p><a href="https://www.reddit.com/r/ProgrammingLanguages/comments/pjcewi/introducing_skiff_a_gradually_typed_functional/" rel="noopener noreferrer">Introducing Skiff, a gradually typed functional language written in Rust</a></p>
-<p>Skiff，是一门用Rust编写的逐渐类型化的函数式编程语言。所谓逐渐类型化是指作者计划下一步通过添加类型化关键字来区分完全类型函数和部分类型函数。</p>
-<p>Skiff受<code>Elm</code>/<code>Pyret</code>/<code>Python</code>语言启发，并受<code>Rust</code>/<code>Javascript</code>/<code>Typescript</code>/<code>Haskell</code>/<code>OCaml</code>/<code>Lua</code>等语言影响，当前语言功能还在持续完善中，作者提供了一个由<code>wasm!</code>驱动的<a href="https://skiff.paulbiberstein.me/" rel="noopener noreferrer">网页编辑器</a>可供读者学习使用，更多信息请访问项目主页的<a href="https://github.com/P-bibs/skiff/" rel="noopener noreferrer">Readme</a>。</p>
-<p><strong>更多信息</strong>：</p>
-<ul>
-<li>项目地址：<a href="https://github.com/P-bibs/skiff/" rel="noopener noreferrer">https://github.com/P-bibs/skiff/</a></li>
-<li>网页编辑器：<a href="https://skiff.paulbiberstein.me/" rel="noopener noreferrer">https://skiff.paulbiberstein.me/</a></li>
-</ul>
-<hr>
-<p>From 日报小组 odd-cat</p>
-<p>社区学习交流平台订阅：</p>
-<p><a href="https://rustcc.cn/" rel="noopener noreferrer">Rust.cc 论坛: 支持 rss</a></p>
-<p><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust 语言中文社区</a></p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">40k-80k招聘全职远程区块链开发工程师</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=5c42bdfd-0e97-4fc4-a494-4c9d14a5679f">
-<div class="article-summary-box-inner">
-<span><p>公司简介
-我们是一家总部位于硅谷的区块链初创企业,我们跟绝大部分区块链公司不同的是，我们有顶级的产品来支撑我们的业务和发展远景。重要的事情说三遍，有产品，有产品，有产品，而且是业界领先的产品！</p>
-<p>目前我们在全球150多个国家拥有20,000+的用户，30,000+节点。</p>
-<p>目前公司已经盈利，现金贮备丰厚，正在对接业界最等级的风险投资机构，处于起飞的前夕。</p>
-<p>基本要求
-1、扎实的计算机科学基础知识；</p>
-<p>2、动手能力强，有死磕精神；</p>
-<p>3、有丰富的 Rust 开发经验；</p>
-<p>4、曾经独立完成或者主导完成过具有挑战性的项目；</p>
-<p>5、对工作有强大的责任心。</p>
-<p>加分项
-1、区块链相关数据结构与算法；</p>
-<p>2、Substrate或其他区块链节点开发经验；</p>
-<p>3、跨链、Layer 2 开发经验。</p>
-<p>薪资福利
-1、月薪40k-80k；</p>
-<p>2、入职满一年，表现合格者可以获得公司的股票或期权；</p>
-<p>3、优秀者提供移民美国、加拿大的机会。</p>
-<p>工作方式
-1、远程办公</p>
-<p>2、工作时间：无固定时间，工作完成后自由安排</p>
-<p>3、很少有跨时区的会议，除特殊、紧急工作任务对接外</p>
-<p>4、工作会议主要为中文交流</p>
-<p>工作语言
-1、英文为主，中文为辅</p>
-<p>2、英文要求读写能力合格及优秀</p>
-<p>面试流程
-1、收到简历后，将安排1到3轮电话语音面试；</p>
-<p>2、电话语音面试结束后，将进入试用期（全额工资）；</p>
-<p>3、试用期结束后，正式开始工作。</p>
 </span>
 </div>
 </a>
@@ -3318,7 +3291,7 @@ datasets over other types of collections.
 </ul>
 </section>
 <footer>
-<time id="build-timestamp" datetime="2021-09-10 01:54:26.840139362 UTC">2021-09-10 01:54:26 UTC</time>
+<time id="build-timestamp" datetime="2021-09-11 01:50:00.069847175 UTC">2021-09-11 01:50:00 UTC</time>
 <span><a class="footer-link" href="https://github.com/NotCraft/NotFeed"> notfeed 0.2.3</a></span>
 </footer>
 <script src="index.js"></script>
