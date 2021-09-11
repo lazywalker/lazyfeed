@@ -12,13 +12,221 @@
 <body>
 <section class="daily-content">
 <h2 class="daily-heading">
-<time datetime="2021-09-11T01:50:00.016439924Z">09-11</time>
+<time datetime="2021-09-11T16:26:03.165801913Z">09-11</time>
 </h2>
 <ul class="sources card">
 <li class="source">
 <section>
 <h3 class="source-name">Rust.cc</h3>
 <section class="articles-per-source">
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust日报】2021-09-11 Tabled 发布v0.3, bma-benchmark, ferros, Veloren发布v0.11</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=db077b1a-5af6-4fb2-b065-ff8be974fd62">
+<div class="article-summary-box-inner">
+<span><h3>Tabled 发布v0.3</h3>
+<p>Tabled 是一个易于使用的库，用于美化 Rust 结构和枚举的输出。</p>
+<p>Github<a href="https://github.com/zhiburt/tabled" rel="noopener noreferrer">链接</a>，https://github.com/zhiburt/tabled</p>
+<h3>bma-benchmark 一个友好的基准测试工具</h3>
+<p>使用 <code>bma_benchmark</code></p>
+<pre><code>#[macro_use]
+extern crate bma_benchmark;
+
+use std::sync::Mutex;
+
+let n = 100_000_000;
+let mutex = Mutex::new(0);
+benchmark_start!();
+for _ in 0..n {
+    let _a = mutex.lock().unwrap();
+}
+benchmark_print!(n);
+</code></pre>
+<p>使用宏 <code>benchmark!</code></p>
+<pre><code>#[macro_use]
+extern crate bma_benchmark;
+
+use std::sync::Mutex;
+
+let mutex = Mutex::new(0);
+benchmark!(100_000_000, {
+    let _a = mutex.lock().unwrap();
+    });
+</code></pre>
+<p><img src="https://raw.githubusercontent.com/alttch/bma-benchmark/main/simple.png" alt="结果"></p>
+<p>Crate <a href="https://crates.io/crates/bma-benchmark" rel="noopener noreferrer">链接</a>，https://crates.io/crates/bma-benchmark</p>
+<h3>ferros</h3>
+<p>seL4 是一个用于构建操作系统和嵌入式程序的工具包，这个开源项目是使 Rust 中的 seL4 编程变得更好。</p>
+<p>以下代码演练假定使用示例 sel4_start 库执行 selfe，并介绍了 ferros 的某些方面。</p>
+<pre><code>use selfe_sys;
+use ferros::alloc::{self, micro_alloc, smart_alloc};
+use ferros::userland::{root_cnode, BootInfo};
+
+// The raw boot info is provided by the sel4_start library
+let raw_boot_info: &amp;'static selfe_sys::seL4_BootInfo = unsafe { &amp;*sel4_start::BOOTINFO };
+
+
+// Utility for finding and claiming `Untyped` instances supplied by the boot info.
+let mut allocator = micro_alloc::Allocator::bootstrap(&amp;raw_boot_info)?;
+let initial_untyped = allocator
+    .get_untyped::&lt;U20&gt;() // The size of the Untyped instance, as bits
+    .expect("Couldn't find an untyped instance of the desired size");
+
+// Create the top-level CNode wrapper with type-level-tracked remaining slot capacity
+let (root_cnode, local_slots) = root_cnode(&amp;raw_boot_info);
+
+// Once we have an initial Untyped instance, memory distribution from it
+// can be tracked with compile-time checks. The smart_alloc macro synthesizes
+// the allocation code, and the capacity bounds are statically verified by
+// the type checker. The effect is that you can write 'slots' in the macro body 
+// anywhere you need some slots, and you'll get the right number allocated
+// with type inference. A reference to 'ut' does the same for untyped memory. 
+smart_alloc!(|slots from local_slots, ut from uts| {
+
+    // Create a page table seL4 kernel object and return a capability pointer to it.
+    // Here we use a variable binding type annotation and Rust's type system can figure out
+    // if it can allocate a large enough Untyped instance and enough cnode slots
+    // to represent this particular kernel object.
+    let example_page_table: LocalCap&lt;UnmappedPageTable&gt; = retype(ut, slots)?;
+
+    // Create a resource-tracking wrapper around the raw boot info to assist in
+    // virtual memory related operations.
+    let boot_info  = BootInfo::wrap(raw_boot_info, ut, slots);
+    let (root_page_table, boot_info) = boot_info.map_page_table(root_page_table)?;
+});
+
+</code></pre>
+<p>Github<a href="https://github.com/auxoncorp/ferros" rel="noopener noreferrer">链接</a>，https://github.com/auxoncorp/ferros</p>
+<h3>Veloren发布v0.11</h3>
+<p>今天，Veloren 发布了 0.11。 这个版本已经制作了 3 个月，其一大重点是让世界各地的战斗更具活力。这是以新的地点系统的形式出现，以及 NPC 和生物如何与世界互动。</p>
+<p>要了解还有哪些新功能！请继续阅读 V0.11 变更日志<a href="https://veloren.net/release-0-11/" rel="noopener noreferrer">链接</a>，https://veloren.net/release-0-11/</p>
+<hr>
+<p>From 日报小组 <a href="https://rustcc.cn/blog_with_author?author_id=207704d2-4f5e-4219-a631-6ab4ab4d8929" rel="noopener noreferrer">洋芋</a></p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
+<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">cargo fix 如何自动修复warning？</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=0d747849-2064-4ba2-a725-2fe64f6ab556">
+<div class="article-summary-box-inner">
+<span><p>代码中有些外面copy过来的enum，导致很多的“should have an upper camel case name”warning。就是编码风格的问题，可是<code>cargo fix</code>没有办法按照rust给的建议自动帮我改掉。。。。</p>
+<p>有办法吗？</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">20K～80K/月 高薪招募区块链开发工程师</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=af23774f-9378-4b81-8d01-e0ce37159b00">
+<div class="article-summary-box-inner">
+<span><p>区块链开发工程师招聘</p>
+<p>Bochsler Finance是一家总部位于瑞士的金融集团，专注于互联网科技和金融科技领域的投资和资产管理，投资和孵化了Dfinity, Origyn等优质项目，旗下公司包括对冲基金公司，财富管理公司，交易所，Token基金等。与Dfinity，Coinlist，Polychain有紧密合作关系。</p>
+<p>Bochsler Finance上海分公司正在筹建中。Bochsler将与DFINITY以及Origyn紧密合作，共同进行互联网计算机的生态建设，技术合作开发，Dfinity生态项目咨询，孵化等。</p>
+<p>现招募以下职位：区块链实习/初级/中级/高级开发工程师</p>
+<p>职位要求
+• 在1-2月培训后，能掌握Dfinity技术开发，能与国内外团队合作，共同开发Dfinity生态项目。
+• 熟练掌握 JAVA/Rust/C/C++/MOTOKO 中的一种或多种语言，有 Rust 实际开发经验者优先
+• 熟悉以太坊，BSC，NEO，DOT智能合约，DEX，DeFi，NFT开发经验者优先
+• 具有扎实的应用密码学知识者优先(非对称加密、零知识证明、多方安全计算等)
+• 工作务实，不浮躁，有责任感和远大理想
+• 工作地点：上海中山公园附近，暂时不接受远程办公。</p>
+<p>薪酬范围和公司福利
+月薪20K～80K，优秀者工资面议，开发项目的通证提成，鼓励公司内部创业以及项目孵化，有机会参与顶级项目私募，加薪和职务上升通道畅通,与Dfinity/Origyn高级工程师交流学习。</p>
+<p>联系方式：hu@bochslerfinance.com
+微信：woniu2010woniu</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">一个优雅的过滤方式</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=0a205b13-bd71-4ceb-8bda-f1977d9ce926">
+<div class="article-summary-box-inner">
+<span><p>项目地址：https://github.com/Spxg/filter</p>
+<p>使用 filter-macros，然后对一个枚举体实现 Filter Trait，填上判断规则（rules），就可以用了。</p>
+<pre><code>#[add_fields]
+#[derive(BitAnd, BitOr, OpUnitTrait)]
+enum NumType {
+    Odd,
+    Even,
+    DivByThree,
+    DivByFour,
+    DivByFive,
+    IsMagicNum(i32),
+}
+
+impl Filter for NumType {
+    type Item = i32;
+
+    fn rules(&amp;self, item: &amp;Self::Item) -&gt; bool {
+        match self {
+            NumType::Odd =&gt; item % 2 != 0,
+            NumType::Even =&gt; item % 2 == 0,
+            NumType::DivByThree =&gt; item % 3 == 0,
+            NumType::DivByFour =&gt; item % 4 == 0,
+            NumType::DivByFive =&gt; item % 5 == 0,
+            NumType::IsMagicNum(num) =&gt; item == num,
+            _ =&gt; false,
+        }
+    }
+}
+
+fn main() {
+    let nums = vec![1, 2, 3, 4, 5, 6, 9, 12, 15, 16, 20, 22, 24, 1024];
+    let test = NumType::Odd
+        | NumType::Even &amp; NumType::DivByThree &amp; NumType::DivByFour
+        | NumType::DivByFive;
+    let result = nums
+        .clone()
+        .into_iter()
+        .filter(test.ref_one_filter())
+        .collect::&lt;Vec&lt;_&gt;&gt;();
+    assert_eq!(vec![1, 3, 5, 9, 12, 15, 20, 24], result);
+
+    let test = NumType::IsMagicNum(1024);
+    assert!(test.self_filter()(1024));
+}
+</code></pre>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">在vscode中安装了rust-analyzer插件，保存代码无法自动格式化</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=017fbf6c-8032-4f6f-8ea3-fa98d7d1d133">
+<div class="article-summary-box-inner">
+<span><p>在vscode中安装了rust-analyzer插件，保存代码无法自动格式化
+每次都要手动运行<code>cargo fmt</code>命令才可以，请问大家有什么办法解决这个问题吗？</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Mutex 区别</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=c7557d0d-ccb9-4276-a984-78dc6d9a1091">
+<div class="article-summary-box-inner">
+<span><p>Rust 标准库中有 Mutex，tokio 库中也有 Mutex，这些不同的互斥锁有不同的用法，但是具体有什么区别？</p>
+</span>
+</div>
+</a>
+</details>
+</article>
 <article>
 <details class="article-expander">
 <summary class="article-expander__title">非凸科技 ｜招聘内推公告</summary>
@@ -183,234 +391,6 @@ error: aborting due to previous error; 1 warning emitted
 <ul>
 <li>能否帮我解决下问题, 多谢</li>
 </ul>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【标准库】✨ Rust v1.55 中文版更新了</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=5845ae5a-002c-4b14-971e-02c1d876084d">
-<div class="article-summary-box-inner">
-<span><p>中文版 Rust 标准库翻译更新了，这个版本的翻译可以说是迄今为止最好的中文版翻译。</p>
-<p>可以到这里下载：<a href="https://github.com/wtklbm/rust-library-i18n" rel="noopener noreferrer">https://github.com/wtklbm/rust-library-i18n</a>。</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">Rust&Rocket 0.5&Redis的使用demo</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=cc9af0e5-fcff-4e16-b2a5-64a25e8b96a1">
-<div class="article-summary-box-inner">
-<span></span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【Rust 日报】2021-9-9</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=0e671427-facc-4848-998d-a8c4156e076b">
-<div class="article-summary-box-inner">
-<span><h3>Rust 1.56 beta1 (2021版)现已发布！!</h3>
-<p>你现在可以用rustup安装2021测试版了。</p>
-<p>使用<code>rustup default beta</code>切换到最新的测试版，然后你可以将你的toml文件迁移到 edition="2021" 或者用<code>cargo new</code>启动一个使用21版的新项目。</p>
-<p>关于现有项目的迁移过程的一些信息:</p>
-<p>https://doc.rust-lang.org/cargo/commands/cargo-fix.html</p>
-<h3>rcore tutorial book 更新了</h3>
-<p>陈渝老师的rcore系列操作系统课程更新了:</p>
-<blockquote>
-<p><code>rCore-Tutorial-Book</code> 在暑假期间又进行了一轮修改，算是从0.35版进化到0.50版了。请对学习用Rust写OS感兴趣的朋友看看。如果有问题、建议，发现了bug，请直接在每节下方的交互窗口留言。如果想一起来参与写作，请直接联系 陈渝或吴一凡。谢谢！ 本书定位是以尽量简单的编程和尽量少的OS/CPU知识来逐步设计实现一个一个的小OS，让学生知道操作系统的概念的实际体现和操作系统的全貌。经过我们讨论，虽然这本书是基于单处理器讲解的，但觉得还是要加入OS的同步互斥支持，与传统方式不同，这一章主要讲解操作系统如何支持用户态线程的同步互斥操作。所以，目前还缺的是关于同步互斥的一章，各种图，相关OS历史的介绍，相关知识点的进一步补充。争取本月完成。</p>
-</blockquote>
-<p><a href="https://rcore-os.github.io/rCore-Tutorial-Book-v3/" rel="noopener noreferrer">Read More</a>: https://rcore-os.github.io/rCore-Tutorial-Book-v3/</p>
-<h3>Rust for Linux 研讨会 9.13 ～ 9.15</h3>
-<p>9.13 分享：</p>
-<ol>
-<li>High Velocity Kernel Modules in Rust with Bento —— Samantha Miller</li>
-</ol>
-<p>Bento 是 Safe Rust 实现的 linux 内核 文件系统。 通过实现安全的 API 并使用安全的内核函数包装器，文件系统是用安全的 Rust 编写的。 这些安全接口尽可能接近现有的用户空间（主要是标准库）接口，因此只需将 Bento 包含更改为用户空间 Rust 库和/或 bento_utils 包含，就可以将文件系统重新编译为 FUSE 文件系统。更多信息：https://github.com/smiller123/bento</p>
-<p>这次分享主要讨论 Bento ，用于加速 Linux 内核开发的框架。目前已经为文件系统模块实现了Bento框架，并利用它实现了一个性能类似于ext4的文件系统，可以在不卸载的情况下进行升级，而且只需要15ms的停机时间。我们目前正在努力扩展Bento，以支持自定义的TCP/IP堆栈。</p>
-<ol start="2">
-<li>How can we formally verify Rust for Linux? —— Alastair Reid</li>
-</ol>
-<p>在Linux中使用Rust的目的是创建更稳固、更安全的代码：通过利用Rust的语言特性和设计一个安全的API供驱动程序使用，避免内存安全问题和并发问题。该分享研究了我们如何/是否可以利用自动形式验证工具走得更远。</p>
-<p>9.14 分享：</p>
-<ol>
-<li>Rust key concepts for the Linux kernel (I) —— Miguel Ojeda</li>
-</ol>
-<p>介绍 在 Linux 内核领域应用 Rust 的一些关键概念，第一部分</p>
-<ol start="2">
-<li>The Thread wrapper for Rust in Linux kernel — Boqun Feng （冯博群）</li>
-</ol>
-<p>内核线程是内核中最重要的组件之一，它也是实现内核中其他核心子系统的必要环节。本专题将分享如何在Linux内核中实现Rust类线程的封装器的学习过程，以及目前的状况和未来的工作。</p>
-<ol start="3">
-<li>Implementing the Iterator trait for seq_file —— Adam Bratschi-Kaye</li>
-</ol>
-<p>内核中的seq_file接口允许通过实现一个迭代可以打印的值的接口来轻松创建虚拟文件。这似乎应该直接转化为Rust的Iterator特性，其中Item实现了Display，但当然，魔鬼在细节中。该分享将展示如何为Rust代码提供seq_file的接口。</p>
-<p>9.15 分享</p>
-<ol>
-<li>Rust key concepts for the Linux kernel (II) —— Wedson Almeida Filho</li>
-</ol>
-<p>介绍在 Linux 内核领域应用 Rust 的一些关键概念，第二部分</p>
-<ol start="2">
-<li>Writing an embedded SPI-based Linux driver in Rust —— Arthur Cohen, Esteban Blanc, Martin Schmidt</li>
-</ol>
-<p>虽然Linux主要不是一个以嵌入式为重点的操作系统，但它仍然被用于诸如Raspberry Pi这样的平台。在这些平台上，内核模块提供了一种有用的方式，可以在内核层面与各种设备进行交互，这些设备通常使用低级协议进行通信，如SPI或I2C。</p>
-<p>在这种工作负载中使用Rust有很多优势，虽然这些协议的内核API已经被尝试和测试了很长时间，但目前还没有Rust的抽象。</p>
-<p>在该分享中，将谈论在ARM64平台上为Linux带来一个安全的Rust的SPI协议的抽象，以及如何使用它来实现一个简单的设备驱动程序。该分享将与C语言的原始实现进行比较，后者提供了同样多的功能。最后，将深入探讨所使用的技术和他们使用Rust-for-Linux的经验。</p>
-<p>以上三天的研讨会，应该是线下的，因为并没有提供线上参与链接。</p>
-<p>对此话题感兴趣的可以关注：https://github.com/Rust-for-Linux/linux，</p>
-<p>也可以登记参加在线讨论： https://rust-for-linux.zulipchat.com</p>
-<p>研讨会官网： https://kangrejos.com/</p>
-<h3>在Chrome中更安全地使用C++</h3>
-<p>谷歌发布了一篇名为<code>在Chrome中更安全地使用C++</code>，它有一些关于这些安全问题如何困扰Chrome和Android代码库的安全报告的链接，这部分链接内提到了Rust。</p>
-<p><a href="https://docs.google.com/document/d/e/2PACX-1vRZr-HJcYmf2Y76DhewaiJOhRNpjGHCxliAQTBhFxzv1QTae9o8mhBmDl32CRIuaWZLt5kVeH9e9jXv/pub" rel="noopener noreferrer">Read More</a>: https://docs.google.com/document/d/e/2PACX-1vRZr-HJcYmf2Y76DhewaiJOhRNpjGHCxliAQTBhFxzv1QTae9o8mhBmDl32CRIuaWZLt5kVeH9e9jXv/pub</p>
-<h3><code>Tokio Cosole</code> 开发日记#1</h3>
-<blockquote>
-<p>自从几个月前开始制作 <code>Tokio Console</code> 原型以来，我们一直在努力工作，把它变成一个很棒的异步任务调试器。我们想围绕它的进展情况提供一些集中的更新。</p>
-</blockquote>
-<p><a href="https://tokio.rs/blog/2021-09-console-dev-diary-1" rel="noopener noreferrer">Read More</a>: https://tokio.rs/blog/2021-09-console-dev-diary-1</p>
-<h3>zerocopy 0.6.0刚刚发布，带来了很多新的功能!</h3>
-<p>最值得激动的新功能当然是：</p>
-<blockquote>
-<p><code>simd</code>和<code>simd-nightly</code>特性使得支持稳定和不稳定的SIMD</p>
-</blockquote>
-<p><a href="https://docs.rs/zerocopy/0.6.0/zerocopy/" rel="noopener noreferrer">Read More</a>: https://docs.rs/zerocopy/0.6.0/zerocopy/</p>
-<h3><code>rpg-cli</code>发布1.0版本！</h3>
-<p>rpg-cli是一个用Rust编写的极简主义<a href="https://en.wikipedia.org/wiki/Role-playing_video_game" rel="noopener noreferrer">computer RPG</a>。它的命令行界面可以作为<code>CD</code>的替代品，当你改变目录时，你会随机遇到敌人。</p>
-<p><img src="https://raw.githubusercontent.com/facundoolano/rpg-cli/main/rpg-cli.png" alt="demo"></p>
-<p><a href="https://github.com/facundoolano/rpg-cli/" rel="noopener noreferrer">Github</a>: https://github.com/facundoolano/rpg-cli/</p>
-<h3>本周周报</h3>
-<p>第 407 期。</p>
-<p><a href="https://this-week-in-rust.org/blog/2021/09/08/this-week-in-rust-407/" rel="noopener noreferrer">Read More</a>: https://this-week-in-rust.org/blog/2021/09/08/this-week-in-rust-407/</p>
-<p>From 日报小组 Cupnfish</p>
-<p>社区学习交流平台订阅：</p>
-<ul>
-<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rust.cc 论坛: 支持 rss</a></li>
-<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust 语言中文社区</a></li>
-</ul>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【Rust日报】2021-09-08 -- 本月 Rust OSDev（2021 年 8 月）</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=e6eaa344-4be9-4ead-9864-9f1c5dc568ad">
-<div class="article-summary-box-inner">
-<span><h3>本月 Rust OSDev（2021 年 8 月）</h3>
-<h4>项目更新</h4>
-<ul>
-<li>
-<p>acpi - 包含用于解析 ACPI 表的 crate - 现代计算机的固件用于将有关硬件的信息传递给操作系统的数据结构。</p>
-<p>已将处理器 UID 和本地 APIC ID 的表示更改 <code>acpi::platform::Processor</code>为<code>u32</code>，以支持 X2APIC 用于支持更多处理器的更广泛的 ID。</p>
-</li>
-<li>
-<p>uefi-rs - 该uefi箱提供了安全，高性能包装UEFI。</p>
-</li>
-<li>
-<p>x86_64 - 提供了用于各种抽象x86_64系统，包括包装为CPU指令，访问处理器的专用寄存器，和抽象类型体系结构的特定结构，如页表和描述符表。</p>
-</li>
-<li>
-<p>bootloader - 实现了64位ELF可执行文件便于装载基于rust定制引导程序。</p>
-</li>
-<li>
-<p>multboot2 - 提供一个抽象类型multiboot2引导程序的引导信息。</p>
-</li>
-<li>
-<p>pic_8259 - 提供了用于8259个8259A可编程中断控制器（PICS）的抽象。</p>
-</li>
-</ul>
-<p>ReadMore:<a href="https://rust-osdev.com/this-month/2021-08/" rel="noopener noreferrer">https://rust-osdev.com/this-month/2021-08/</a></p>
-<h3>为什么 Rust 需要 Pin 和 unpin</h3>
-<ul>
-<li>什么是Futures</li>
-<li>什么是自引用类型</li>
-<li>为什么他们不安全</li>
-<li>Pin/Unpin 如何使它们安全</li>
-<li>使用 Pin/Unpin 编写复杂的futures</li>
-</ul>
-<p>ReadMore:<a href="https://blog.cloudflare.com/pin-and-unpin-in-rust/" rel="noopener noreferrer">https://blog.cloudflare.com/pin-and-unpin-in-rust/</a></p>
-<h3>htmlq</h3>
-<p>像 jq，但用于 HTML。使用 CSS 选择器从 HTML 文件中提取部分内容。</p>
-<p>例子:</p>
-<pre><code>$ curl --silent https://www.rust-lang.org/ | htmlq '#get-help'
-&lt;div class="four columns mt3 mt0-l" id="get-help"&gt;
-        &lt;h4&gt;Get help!&lt;/h4&gt;
-        &lt;ul&gt;
-          &lt;li&gt;&lt;a href="https://doc.rust-lang.org"&gt;Documentation&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href="https://users.rust-lang.org"&gt;Ask a Question on the Users Forum&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href="http://ping.rust-lang.org"&gt;Check Website Status&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-        &lt;div class="languages"&gt;
-            &lt;label class="hidden" for="language-footer"&gt;Language&lt;/label&gt;
-            &lt;select id="language-footer"&gt;
-                &lt;option title="English (US)" value="en-US"&gt;English (en-US)&lt;/option&gt;
-&lt;option title="French" value="fr"&gt;Français (fr)&lt;/option&gt;
-&lt;option title="German" value="de"&gt;Deutsch (de)&lt;/option&gt;
-
-            &lt;/select&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-</code></pre>
-<p>ReadMore:<a href="https://github.com/mgdm/htmlq" rel="noopener noreferrer">https://github.com/mgdm/htmlq</a></p>
-<hr>
-<p>From 日报小组 冰山上的 mook &amp;&amp; 挺肥</p>
-<p>社区学习交流平台订阅：</p>
-<ul>
-<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
-<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
-</ul>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">刚学,对生命周期的疑问</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=3582ba85-7c0f-451f-aea8-9da5d6b69905">
-<div class="article-summary-box-inner">
-<span><p>中文文档中的示例 10-24
-fn main() {
-let string1 = String::from("long string is long");
-let result;
-{
-let string2 = String::from("xyz");
-result = longest(string1.as_str(), string2.as_str());
-}
-println!("The longest string is {}", result);
-}
-fn longest&lt;'a&gt;(x: &amp;'a str, y: &amp;'a str) -&gt; &amp;'a str {
-if x.len() &gt; y.len() {
-x
-} else {
-y
-}
-}
-会出现<code>string2</code> does not live long enough。
-可是将
-let string1 ="long string is long";
-{
-let string2 = "xyz";
-//如上
-}
-改成这样却能正确输出结果</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">由于微软更新了webview2版本，tauri的程序不能打包release版本了</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=6d630089-a902-4eca-a98c-86c6e72d70f6">
-<div class="article-summary-box-inner">
-<span><p>rust GUI太难了</p>
 </span>
 </div>
 </a>
@@ -3291,7 +3271,7 @@ datasets over other types of collections.
 </ul>
 </section>
 <footer>
-<time id="build-timestamp" datetime="2021-09-11 01:50:00.069847175 UTC">2021-09-11 01:50:00 UTC</time>
+<time id="build-timestamp" datetime="2021-09-11 16:26:03.218366756 UTC">2021-09-11 16:26:03 UTC</time>
 <span><a class="footer-link" href="https://github.com/NotCraft/NotFeed"> notfeed 0.2.3</a></span>
 </footer>
 <script src="index.js"></script>
