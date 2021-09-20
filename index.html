@@ -12,13 +12,333 @@
 <body>
 <section class="daily-content">
 <h2 class="daily-heading">
-<time datetime="2021-09-20T04:21:24.527273082Z">09-20</time>
+<time datetime="2021-09-20T23:23:40.451584380Z">09-20</time>
 </h2>
 <ul class="sources card">
 <li class="source">
 <section>
 <h3 class="source-name">Rust.cc</h3>
 <section class="articles-per-source">
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">Rust Developer(ST) for SIL.Finance (for Soh.cool, Solana Branch)</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=b367e266-92ef-400c-81b0-18bc0346560b">
+<div class="article-summary-box-inner">
+<span><h2>Location</h2>
+<ul>
+<li>San Mateo, California, On-site.</li>
+<li>Hangzhou, China, On-site.</li>
+<li>Globe, Remote.</li>
+</ul>
+<h3>Rust Engineer</h3>
+<ul>
+<li>
+<p>Responsibilities</p>
+<ul>
+<li>Build smart contracts in Rust, understand Solana BPF</li>
+<li>Build smart contracts in Solidity as well</li>
+<li>Design, scope, and estimate tasks based on requirements</li>
+<li>Collaborate with team to plan projects at the task level</li>
+<li>Collaborate with cross-functional partners on all aspects of product development</li>
+<li>Identify and advocate for team-wide areas of improvement and best practices</li>
+<li>Envision and develop features to help grow SIL</li>
+</ul>
+</li>
+<li>
+<p>Qualifications</p>
+<ul>
+<li>Bachelor's or Master's degree in CS or equivalent experience</li>
+<li>Experience with Rust</li>
+<li>Experience with Solana blockchain</li>
+<li>Experience with Layer 2 scaling</li>
+</ul>
+</li>
+<li>
+<p>Good to have</p>
+<ul>
+<li>Experience with Solidity, and understands gas optimization</li>
+<li>Experience with Truffle/Hardhat</li>
+<li>Experience with migrations and deploy code to EVM compatible networks</li>
+</ul>
+</li>
+</ul>
+<h3>Solidity Engineer</h3>
+<ul>
+<li>
+<p>Responsibilities</p>
+<ul>
+<li>Build smart contracts in Solidity for the EVM compatible blockchains</li>
+<li>Design, scope, and estimate tasks based on requirements</li>
+<li>Collaborate with team to plan projects at the task level</li>
+<li>Collaborate with cross-functional partners on all aspects of product development</li>
+<li>Identify and advocate for team-wide areas of improvement and best practices</li>
+<li>Envision and develop features to help grow SIL</li>
+</ul>
+</li>
+<li>
+<p>Qualifications</p>
+<ul>
+<li>Bachelor's or Master's degree in CS or equivalent experience</li>
+<li>Experience with Solidity, and understands gas optimization</li>
+<li>Experience with Truffle/Hardhat</li>
+<li>Experience with migrations and deploy code to EVM compatible networks</li>
+</ul>
+</li>
+<li>
+<p>Good to have</p>
+<ul>
+<li>Experience with Layer 2 scaling</li>
+<li>Experience with Rust</li>
+<li>Experience with Solana blockchain</li>
+</ul>
+</li>
+</ul>
+<h3>Blockchain QA Engineer</h3>
+<ul>
+<li>
+<p>Responsibilities</p>
+<ul>
+<li>Setup end to end testing tools on dApp (fronend, blockchain)</li>
+<li>Write appropriate end to end tests in order to protect the product from regressions bugs</li>
+<li>Collaborate with team to plan projects at the task level</li>
+<li>Identify and advocate for team-wide areas of improvement and best practices</li>
+</ul>
+</li>
+<li>
+<p>Qualifications</p>
+<ul>
+<li>Experience with automated tests</li>
+<li>Experience with dApp products</li>
+</ul>
+</li>
+<li>
+<p>Good to have</p>
+<ul>
+<li>Experience with EVM compatible blockchains</li>
+<li>Experience with Solidity</li>
+<li>Experience with JavaScript/TypeScript</li>
+</ul>
+</li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">招远程Rust/Solana工程师</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=bec1bd60-b6dc-4128-9683-a986ec950e9e">
+<div class="article-summary-box-inner">
+<span><p>申请链接： https://cryptocurrencyjobs.co/engineering/vovo-finance-solana-engineer/<br>
+薪资：4万 - 8 万/每月<br>
+团队在新加坡和美国</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">招远程Rust/Solana工程师</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=eaf18058-861e-49f2-a619-47f129fdf87b">
+<div class="article-summary-box-inner">
+<span><p>职位介绍和申请链接： https://cryptocurrencyjobs.co/engineering/vovo-finance-solana-engineer/<br>
+薪资：4万 - 8 万/每月<br>
+团队在新加坡和美国</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">异步下的生命周期问题</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=a61c0207-65b5-4f5a-a123-34b553fe13fb">
+<div class="article-summary-box-inner">
+<span><pre><code>
+mod test {
+    use std::{pin::Pin, task::Poll};
+
+    use futures_io::{AsyncBufRead, AsyncRead};
+
+    //不能通过编译
+    struct Body(Vec&lt;u8&gt;);
+
+    impl AsyncRead for Body {
+        fn poll_read(
+            self: Pin&lt;&amp;mut Self&gt;,
+            cx: &amp;mut std::task::Context&lt;'_&gt;,
+            buf: &amp;mut [u8],
+        ) -&gt; Poll&lt;futures_io::Result&lt;usize&gt;&gt; {
+            todo!()
+        }
+    }
+
+    impl AsyncBufRead for Body {
+        fn poll_fill_buf(
+            self: Pin&lt;&amp;mut Self&gt;,
+            cx: &amp;mut std::task::Context&lt;'_&gt;,
+        ) -&gt; Poll&lt;futures_io::Result&lt;&amp;[u8]&gt;&gt; {
+            Poll::Ready(Ok(&amp;self.0))
+        }
+
+        fn consume(self: Pin&lt;&amp;mut Self&gt;, amt: usize) {
+            todo!()
+        }
+    }
+}
+
+</code></pre>
+<p>不能通过编译</p>
+<pre><code>
+error[E0515]: cannot return value referencing function parameter `self`
+  --&gt; src/main.rs:24:13
+   |
+24 |             Poll::Ready(Ok(&amp;self.0))
+   |             ^^^^^^^^^^^^^^^^----^^^^
+   |             |               |
+   |             |               `self` is borrowed here
+   |             returns a value referencing data owned by the current function
+
+For more information about this error, try `rustc --explain E0515`.
+
+</code></pre>
+<p>https://play.rust-lang.org/#:~:text=Permalink%20to%20the%20playground</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">enum和struct下的生命周期问题</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=a45f8532-4e48-4495-91b9-df56b6ce33de">
+<div class="article-summary-box-inner">
+<span><pre><code>
+mod test {
+//不能通过编译
+    enum Body {
+        Bytes(Vec&lt;u8&gt;),
+    }
+
+    impl std::io::Read for Body {
+        fn read(&amp;mut self, buf: &amp;mut [u8]) -&gt; futures_io::Result&lt;usize&gt; {
+            todo!()
+        }
+    }
+
+    impl std::io::BufRead for Body {
+        fn fill_buf(&amp;mut self) -&gt; futures_io::Result&lt;&amp;[u8]&gt; {
+            match self{
+                Body::Bytes(bytes) =&gt; Ok(bytes.as_ref()),
+            }
+        }
+
+        fn consume(&amp;mut self, amt: usize) {
+            todo!()
+        }
+    }
+}
+
+mod test2 {
+//能通过编译
+    struct Body (Vec&lt;u8&gt;);
+    
+
+    impl std::io::Read for Body {
+        fn read(&amp;mut self, buf: &amp;mut [u8]) -&gt; futures_io::Result&lt;usize&gt; {
+            todo!()
+        }
+    }
+
+    impl std::io::BufRead for Body {
+        fn fill_buf(&amp;mut self) -&gt; futures_io::Result&lt;&amp;[u8]&gt; {
+            Ok(self.0.as_ref())
+            
+        }
+
+        fn consume(&amp;mut self, amt: usize) {
+            todo!()
+        }
+    }
+}
+
+fn main(){
+    
+}
+
+</code></pre>
+<p>为什么使用enum就无法通过编译，使用struct就能编译？</p>
+<pre><code>
+error[E0515]: cannot return value referencing local variable `bytes`
+  --&gt; src/main.rs:16:39
+   |
+16 |                 Body::Bytes(bytes) =&gt; Ok(bytes.as_ref()),
+   |                                       ^^^-----^^^^^^^^^^
+   |                                       |  |
+   |                                       |  `bytes` is borrowed here
+   |                                       returns a value referencing data owned by the current function
+
+</code></pre>
+<p>更新：改成<code>Body::Bytes(ref bytes)</code>就过编译了，不知道为什么。</p>
+<p>playground:</p>
+<p>https://play.rust-lang.org/#:~:text=Permalink%20to%20the%20playground</p>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">【Rust日报】2021-09-20 Rust CI/CD: github action 使用</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=f08915d7-1ffc-405c-b627-91d5473c46ec">
+<div class="article-summary-box-inner">
+<span><h1>Rust CI/CD: github action 使用</h1>
+<p>和任何其他语言一样, 在我们掌握语法之外, 我们往往还有 CI/CD 的需求:</p>
+<ul>
+<li>需要哪些组件来组成CI管道，以确保我的代码是健康的？</li>
+<li>如何部署？</li>
+<li>我需要编写自定义工具还是有社区资源可用？</li>
+</ul>
+<p>作者会用三篇文章来讲解 Rust在 github 中如何使用 action 来完成 CI/CD.</p>
+<p><a href="https://www.homeops.dev/continuous-integration-with-github-actions-and-rust/" rel="noopener noreferrer">原文链接</a></p>
+<h1>使用 Axum, Hyper, Tonic, and Tower 打造 web/gRPC 应用</h1>
+<p>这是使用 Axum, Hyper, Tonic, and Tower 来打造 web/gRPC 应用系列的第四部分. 本次主要讲解如何组合 Axum 和 Tonic.</p>
+<p><a href="https://www.fpcomplete.com/blog/axum-hyper-tonic-tower-part4/" rel="noopener noreferrer">原文链接</a></p>
+<h1>compact_str: 一种内存高效的不可变 string 类型</h1>
+<p>CompactStr 是一种内存效率更高的不可变字符串类型，它可以在堆栈上存储较小的字符串，并透明地在堆上存储更长的字符串。它们大多可以用作String的替换，在解析、反序列化或任何其他可能有较小字符串的应用程序中特别有用。</p>
+<p><a href="https://github.com/ParkMyCar/compact_str" rel="noopener noreferrer">github 地址</a></p>
+<h1>Caches: rust版本的 LRU</h1>
+<p>这是一个 Rust 版本的 LRU 实现. golang 的实现: https://github.com/hashicorp/golang-lru</p>
+<p><a href="https://github.com/al8n/caches-rs" rel="noopener noreferrer">github 地址 </a></p>
+<p>--</p>
+<p>From 日报小组 BobQin，FBI小白</p>
+<p>社区学习交流平台订阅：</p>
+<ul>
+<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
+<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
+</ul>
+</span>
+</div>
+</a>
+</details>
+</article>
+<article>
+<details class="article-expander">
+<summary class="article-expander__title">未知长度的迭代器是怎么优化的</summary>
+<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=a2c6af33-7e65-4100-a633-71f8658929fb">
+<div class="article-summary-box-inner">
+<span><p>我看到书里面说到</p>
+<p>Rust 知道这里会迭代 12 次，所以它“展开”（unroll）了循环。展开是一种移除循环控制代码的开销并替换为每个迭代中的重复代码的优化。
+所有的系数都被储存在了寄存器中，这意味着访问他们非常快。这里也没有运行时数组访问边界检查。所有这些 Rust 能够提供的优化使得结果代码极为高效。</p>
+<p>这是基于已知长度的优化，那么未知长度呢，举个例子，用户可以输入一个n,n就是vec的长度，然后我用迭代器遍历这个vec,rust会怎么优化它呢？
+或者说哪里有这些资料</p>
+</span>
+</div>
+</a>
+</details>
+</article>
 <article>
 <details class="article-expander">
 <summary class="article-expander__title">Rust match总是不能按预期执行</summary>
@@ -130,219 +450,6 @@ fn main(){
 <li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rustcc论坛: 支持rss</a></li>
 <li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust语言中文社区</a></li>
 </ul>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">交叉编译求助</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=a61f8f7b-1bc7-47bc-a228-43f57f2b957e">
-<div class="article-summary-box-inner">
-<span><p>环境：
-info: This is the version for the rustup toolchain manager, not the rustc compiler.
-info: The currently active <code>rustc</code> version is <code>rustc 1.52.1 (9bc8c42bb 2021-05-09)</code></p>
-<p>项目依赖:</p>
-<p>[dependencies]
-actix-web = "3.3.2"
-quickxml_to_serde = "0.4.3"
-serde_json = "1.0.68"</p>
-<p>错误：
-cargo build --release --target=x86_64-unknown-linux-musl --verbose
-Fresh unicode-xid v0.2.2
-Compiling cfg-if v1.0.0
-Running <code>rustc --crate-name cfg_if --edition=2018 /Users/lgy/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/cfg-if-1.0.0/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -Cembed-bitcode=no -C metadata=3659865723c6761c -C extra-filename=-3659865723c6761c --out-dir /Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps --target x86_64-unknown-linux-musl -C linker=x86_64-linux-musl-gcc -L dependency=/Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps -L dependency=/Users/lgy/Documents/xmlassint/target/release/deps --cap-lints allow</code>
-Fresh autocfg v1.0.1
-Fresh version_check v0.9.3
-Compiling slab v0.4.4
-Compiling lazy_static v1.4.0
-Compiling futures-sink v0.3.17
-Running <code>rustc --crate-name slab --edition=2018 /Users/lgy/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/slab-0.4.4/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -Cembed-bitcode=no --cfg 'feature="default"' --cfg 'feature="std"' -C metadata=48837676366b2903 -C extra-filename=-48837676366b2903 --out-dir /Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps --target x86_64-unknown-linux-musl -C linker=x86_64-linux-musl-gcc -L dependency=/Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps -L dependency=/Users/lgy/Documents/xmlassint/target/release/deps --cap-lints allow</code>
-Running <code>rustc --crate-name lazy_static /Users/lgy/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/lazy_static-1.4.0/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -Cembed-bitcode=no -C metadata=dbe72fc09fa72228 -C extra-filename=-dbe72fc09fa72228 --out-dir /Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps --target x86_64-unknown-linux-musl -C linker=x86_64-linux-musl-gcc -L dependency=/Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps -L dependency=/Users/lgy/Documents/xmlassint/target/release/deps --cap-lints allow</code>
-Running <code>rustc --crate-name futures_sink --edition=2018 /Users/lgy/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/futures-sink-0.3.17/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -Cembed-bitcode=no --cfg 'feature="alloc"' --cfg 'feature="default"' --cfg 'feature="std"' -C metadata=2dc84c3d7f760b38 -C extra-filename=-2dc84c3d7f760b38 --out-dir /Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps --target x86_64-unknown-linux-musl -C linker=x86_64-linux-musl-gcc -L dependency=/Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps -L dependency=/Users/lgy/Documents/xmlassint/target/release/deps --cap-lints allow</code>
-error[E0463]: can't find crate for <code>core</code>
-|
-= note: the <code>x86_64-unknown-linux-musl</code> target may not be installed</p>
-<p>error[E0463]: can't find crate for <code>core</code>
-|
-= note: the <code>x86_64-unknown-linux-musl</code> target may not be installed</p>
-<p>error: aborting due to previous error</p>
-<p>For more information about this error, try <code>rustc --explain E0463</code>.
-error: aborting due to previous error</p>
-<p>For more information about this error, try <code>rustc --explain E0463</code>.
-error: could not compile <code>lazy_static</code>.</p>
-<p>Caused by:
-process didn't exit successfully: <code>rustc --crate-name lazy_static /Users/lgy/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/lazy_static-1.4.0/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -Cembed-bitcode=no -C metadata=dbe72fc09fa72228 -C extra-filename=-dbe72fc09fa72228 --out-dir /Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps --target x86_64-unknown-linux-musl -C linker=x86_64-linux-musl-gcc -L dependency=/Users/lgy/Documents/xmlassint/target/x86_64-unknown-linux-musl/release/deps -L dependency=/Users/lgy/Documents/xmlassint/target/release/deps --cap-lints allow</code> (exit code: 1)
-warning: build failed, waiting for other jobs to finish...
-error[E0463]: can't find crate for <code>std</code>
-|
-= note: the <code>x86_64-unknown-linux-musl</code> target may not be installed</p>
-<p>error[E0463]: can't find crate for <code>std</code>
-|
-= note: the <code>x86_64-unknown-linux-musl</code> target may not be installed</p>
-<p>error: aborting due to previous error</p>
-<p>For more information about this error, try <code>rustc --explain E0463</code>.
-error: aborting due to previous error</p>
-<p>For more information about this error, try <code>rustc --explain E0463</code>.
-error: build failed</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">宏直接生成多个参数 有没办法实现？</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=dc136abf-037a-440f-8a6f-e7a9b938a3f3">
-<div class="article-summary-box-inner">
-<span><p>//</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【Rust 日报】2021-09-17 - GCC 代码生成后端现已加入 rust-lang 大家庭</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=2755d737-97bd-48bc-8237-512c1d8e8903">
-<div class="article-summary-box-inner">
-<span><h3>事件 - GCC 代码生成后端现已加入 rust-lang 大家庭</h3>
-<p>rustc_codegen_gcc 是为 Rustc 设计的 GCC 代码生成后端，目前已经加入 rust-lang 官方大家庭。</p>
-<p>它不仅可以复用现有的 Rustc 前端，还能够获取来自 GCC 的增益，比如支持更多架构以及应用 GCC 的独门优化。</p>
-<p>尽管该项目采用 libgccjit 进行实现，但其实并不是利用 JIT 技术，而是采用 AOT 方案，可不要被名字迷惑哦。</p>
-<p><a href="https://github.com/rust-lang/rustc_codegen_gcc" rel="noopener noreferrer">GitHub - rust-lang/rustc_codegen_gcc</a>: https://github.com/rust-lang/rustc_codegen_gcc</p>
-<h3>文章 - Kraken 使用 Rust 改进基础设施</h3>
-<p>Kraken 一家总部位于旧金山的公司，是世界上最大的基于欧元交易量和流动性的全球数字资产交易所。</p>
-<p>Kraken 的后端服务早期是使用 PHP 实现的，在最近两年时间，使用 Rust 改造原有的 PHP 服务并开发新的产品和功能，并使用 Rust 支撑了不断扩大的加密货币交易业务。</p>
-<p>Kraken 发布了关于使用 Rust 改进基础建设的一篇文章，并希望对于考虑使用 Rust 构建产品的公司和想要投入时间学习该语言的开发人员来说是一个有用的资源。同时，Kraken 还表示，为了感谢 RustAnalyzer 的出色工作，将会向该项目捐赠 50K EUR 。</p>
-<p><a href="https://blog.kraken.com/post/7964/oxidizing-kraken-improving-kraken-infrastructure-using-rust/" rel="noopener noreferrer">文章 - Oxidizing Kraken: Improving Kraken Infrastructure Using Rust</a>: https://blog.kraken.com/post/7964/oxidizing-kraken-improving-kraken-infrastructure-using-rust/</p>
-<h3>事件 - WGPU 与 Deno 在 CTS 上的成功合作</h3>
-<p>三月份的时候，Deno 1.8 就已经使用 wgpu 来提供了初始的 WebGPU 支持。Deno 团队花了更多的时间将一致性测试套件（CTS）连接到 Deno WebGPU 运行，并报告了 wgpu 上第一个 CTS 结果/问题。</p>
-<p>现在该工作已经与 wgpu CI 集成，作为 wgpu 基础设施和生态系统的一部分。</p>
-<p><a href="https://gfx-rs.github.io/2021/09/16/deno-webgpu.html" rel="noopener noreferrer">文章 - https://gfx-rs.github.io/2021/09/16/deno-webgpu.html</a>: https://gfx-rs.github.io/2021/09/16/deno-webgpu.html</p>
-<hr>
-<p>From 日报小组 <a href="https://github.com/PsiACE" rel="noopener noreferrer">PsiACE</a></p>
-<p>社区学习交流平台订阅：</p>
-<ul>
-<li><a href="https://rustcc.cn/" rel="noopener noreferrer">Rust.cc 论坛: 支持 rss</a></li>
-<li><a href="https://rustcc.cn/article?id=ed7c9379-d681-47cb-9532-0db97d883f62" rel="noopener noreferrer">微信公众号：Rust 语言中文社区</a></li>
-</ul>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【已解决】编译巨慢，要等2-3小时才能编译完</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=c1509426-0a1e-458c-87a4-49463183df6a">
-<div class="article-summary-box-inner">
-<span><p>最近试着用rust写一个小项目，原先编译还好，5分钟内差不多能编译完，突然今天，整个项目编译就变得巨慢，rustc进程cpu达到100%， 内存占了8g多。</p>
-<p>使用的电脑是MacBook
-现在用vscode打开整个项目，rls也会占8g多内存。</p>
-<p>新手求教，这是什么原因造成的？</p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">【活动】Rust China Conf 2021 开放报名</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=3f9908dd-2c8f-44ef-af97-0fb0a39fe810">
-<div class="article-summary-box-inner">
-<span><p>链接在 <a href="https://mp.weixin.qq.com/s?__biz=MzI1MjAzNDI1MA==&amp;mid=2648214472&amp;idx=1&amp;sn=5959c81f42c0d60eaedef0e1379b9051&amp;chksm=f1c5c66dc6b24f7ba908f89db46c57e1353a88a95c31c6d34d37710950693168107ee388f69f&amp;token=2083353868&amp;lang=zh_CN#rd" rel="noopener noreferrer">这里</a></p>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">tokio vs golang</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=5985dfe8-e6f8-46c6-9172-3e05d3ee91f7">
-<div class="article-summary-box-inner">
-<span><p>用 go 写的类似的代码，平均只需要1毫秒，但用 rust+tokio 却平均要3毫秒，如何优化能达到 go的水平？</p>
-<pre><code>use std::{thread, time::Duration};
-use std::time::SystemTime;
-use std::sync::atomic::{AtomicI32, Ordering};
-use std::ops::{Div, AddAssign};
-use std::sync::{Arc};
-
-use tokio::runtime::{Builder};
-use tokio::sync::mpsc;
-use tokio::sync::{Mutex};
-
-
-#[derive(Debug)]
-struct Event {
-    _type: String,
-    time: SystemTime,
-}
-
-fn main() {
-    let (tx, mut rx) = mpsc::unbounded_channel::&lt;Event&gt;();
-
-    let rt = Builder::new_multi_thread().worker_threads(8)
-        .build()
-        .unwrap();
-
-    let count: Arc&lt;AtomicI32&gt; = Arc::new(AtomicI32::new(0));
-    let total: Arc&lt;Mutex&lt;Duration&gt;&gt; = Arc::new(Mutex::new(Duration::new(0, 0)));
-
-    let count2 = count.clone();
-    let total2 = total.clone();
-    rt.spawn(async move {
-        while let Some(res) = rx.recv().await {
-            let elapsed = res.time.elapsed().ok().unwrap();
-            count2.fetch_add(1, Ordering::Relaxed);
-            total2.lock().await.add_assign(elapsed);
-        }
-    });
-
-    let max_loop = 100000;
-
-    for _ in 0..max_loop {
-        let event = Event {
-            _type: "hello".to_string(),
-            time: SystemTime::now(),
-        };
-        let _ = tx.send(event);
-
-        thread::sleep(Duration::from_micros(1));
-    }
-
-    thread::sleep(Duration::from_millis(4000));
-
-    println!("{:?}", count.load(Ordering::Relaxed));
-    rt.block_on(async move {
-        let total2 = total.lock().await;
-        println!(
-            "total: {:?}, average: {:?}, {:?}/s",
-            total2,
-            total2.div(count.load(Ordering::Relaxed) as u32),
-            count.load(Ordering::Relaxed) as f64 / total2.as_secs_f64()
-        );
-    });
-}
-</code></pre>
-</span>
-</div>
-</a>
-</details>
-</article>
-<article>
-<details class="article-expander">
-<summary class="article-expander__title">通过rusoto-s3连接minio服务</summary>
-<a class="article-summary-link article-summary-box-outer" href="https://rustcc.cn/article?id=de64869a-ebca-44f3-ae94-d2988cf5fb4a">
-<div class="article-summary-box-inner">
-<span><h3>近期调研rusoto, 想通过它实现调用minio, 但是目前出现问题</h3>
-<ul>
-<li>rusoto-s3的接口new没有参数可传入minio access-key以及secret-key</li>
-<li>rusoto-s3的接口new-withh中的参数<strong>request_dispatcher</strong>, 不知该如何使用</li>
-</ul>
-<p>请教诸位大佬, 能不能提供个示例, 如何使用rusoto调用minio</p>
 </span>
 </div>
 </a>
@@ -2230,7 +2337,7 @@ magnitude faster than state-of-the-art NAS systems.
 </ul>
 </section>
 <footer>
-<time id="build-timestamp" datetime="2021-09-20 04:21:24.563909408 UTC">2021-09-20 04:21:24 UTC</time>
+<time id="build-timestamp" datetime="2021-09-20 23:23:40.490637373 UTC">2021-09-20 23:23:40 UTC</time>
 <span><a class="footer-link" href="https://github.com/NotCraft/NotFeed"> notfeed 0.2.3</a></span>
 </footer>
 <script src="index.js"></script>
